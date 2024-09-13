@@ -2,21 +2,19 @@ import React, { useState } from "react";
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 
 import SubAccount from "./SubAccount";
-import SubSavings from "./SubSavings";
-import SubAccumulate from "./SubAccumulate";
+import Savings from "./Savings";
 
 const Account = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const tabData = [
-    { name: "Tài Khoản", component: SubAccount },
-    { name: "Sổ Tiết Kiệm", component: SubSavings },
-    { name: "Tích Lũy", component: SubAccumulate },
+    { name: "Tài Khoản", component: <SubAccount /> },
+    { name: "Sổ Tiết Kiệm", component: <Savings /> },
   ];
 
   return (
     <View style={styles.container}>
-      <View></View>
+      {/* Tab Navigation */}
       <View style={styles.navbar}>
         {tabData.map((tab, index) => {
           const isFocused = selectedIndex === index;
@@ -36,11 +34,10 @@ const Account = () => {
         })}
       </View>
 
+      {/* Render selected screen */}
       <View style={styles.screenContainer}>
-        {React.createElement(tabData[selectedIndex].component)}
+        {tabData[selectedIndex].component}
       </View>
-
-      <View style={styles.divider} />
     </View>
   );
 };
@@ -75,38 +72,6 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
-  },
-  balanceContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  balanceText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "black",
-  },
-  usageText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "black",
-    marginTop: 10,
-  },
-  nameText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "black",
-    marginTop: 10,
-  },
-  amountText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#D9D9D9",
-    marginTop: 5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#D9D9D9",
-    marginVertical: 20,
   },
 });
 

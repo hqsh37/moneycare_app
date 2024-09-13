@@ -1,20 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
 import Button from "../../components/ButtonAdd";
+import Feathericon from "react-native-vector-icons/Feather";
 
 const Home = () => {
+  const [hideCash, setHidecash] = useState(false);
+  let cash = "1.000.000 đ";
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.greeting}>Chào Mến Nguyễn!</Text>
-        <View style={styles.headerIcons}>{/* Icons can be placed here */}</View>
+        <View style={styles.headerTop}>
+          <Text style={styles.greeting}>Chào Mến Nguyễn!</Text>
+          <Feathericon name="bell" size={22} color={"#fff"} />
+        </View>
         <View style={styles.balanceContainer}>
           <Text style={styles.balanceTitle}>Tổng số dư</Text>
-          <Image
+          <Feathericon
             style={styles.eyeIcon}
-            source={{ uri: "https://via.placeholder.com/18x12" }}
+            name={hideCash ? "eye-off" : "eye"}
+            size={20}
+            onPress={() => setHidecash(!hideCash)}
           />
-          <Text style={styles.balanceAmount}>1.007.115.109 đ</Text>
+          <Text style={styles.balanceAmount}>{hideCash ? "*****" : cash}</Text>
         </View>
       </View>
 
@@ -57,7 +65,9 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#009fda",
-    padding: 20,
+    paddingTop: 30,
+    paddingLeft: 20,
+    paddingRight: 20,
     paddingBottom: 32,
   },
   subBlock: {
@@ -67,6 +77,8 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
   },
   time: {
     color: "#D9ECF2",
@@ -79,15 +91,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   greeting: {
+    justifyContent: "center",
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-    marginTop: 8,
-  },
-  headerIcons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 16,
   },
   balanceContainer: {
     backgroundColor: "white",
@@ -102,8 +109,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   eyeIcon: {
-    width: 17.54,
-    height: 12,
     position: "absolute",
     right: 16,
     top: 16,
