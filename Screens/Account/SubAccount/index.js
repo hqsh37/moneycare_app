@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import SubAccountItem from "../../../components/SubAcountItem";
 
 const getIconByType = (type) => {
   switch (type) {
@@ -20,19 +20,6 @@ const getIconByType = (type) => {
     default:
       return <FontAwesome5 name="question" size={35} color="#FFA500" />;
   }
-};
-
-const AccountItem = ({ name, amount = 0, type = null }) => {
-  return (
-    <View style={styles.accountItem}>
-      <View style={styles.accountIcon}>{getIconByType(type)}</View>
-      <View style={styles.accountDetails}>
-        <Text style={styles.accountName}>{name}</Text>
-        <Text style={styles.accountAmount}>{amount}</Text>
-      </View>
-      <MaterialIcons name="more-vert" size={24} color="gray" />
-    </View>
-  );
 };
 
 const SubAccount = () => {
@@ -61,13 +48,16 @@ const SubAccount = () => {
         <FlatList
           data={accounts}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <AccountItem
-              name={item.name}
-              amount={item.amount}
-              type={item.type}
-            />
-          )}
+          renderItem={({ item }) => {
+            const IconType = getIconByType(item.type);
+            return (
+              <SubAccountItem
+                name={item.name}
+                amount={item.amount}
+                IconType={IconType}
+              />
+            );
+          }}
         />
       </View>
 

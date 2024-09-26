@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
-import Button from "../../components/ButtonAdd";
+import ButtonAdd from "../../components/ButtonAdd";
 import Feathericon from "react-native-vector-icons/Feather";
 
 const Home = () => {
@@ -35,9 +35,9 @@ const Home = () => {
           </Text>
         </View>
         <View style={styles.cusButton}>
-          <Button outline small width={150}>
+          <ButtonAdd outline small width={150}>
             Thêm hạn mức
-          </Button>
+          </ButtonAdd>
         </View>
       </View>
 
@@ -49,9 +49,9 @@ const Home = () => {
           </Text>
         </View>
         <View style={styles.cusButton}>
-          <Button outline small width={150}>
+          <ButtonAdd outline small width={150}>
             Thêm mới
-          </Button>
+          </ButtonAdd>
         </View>
       </View>
     </ScrollView>
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#009fda",
-    paddingTop: 30,
     paddingLeft: 20,
     paddingRight: 20,
     paddingBottom: 32,

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { StyleSheet, Animated, Easing } from "react-native";
+import { StyleSheet, Animated, Easing, StatusBar } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -53,6 +53,7 @@ const Taskbar = () => {
 
   return (
     <NavigationContainer>
+      <StatusBar backgroundColor="#009fda" />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
