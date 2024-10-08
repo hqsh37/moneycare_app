@@ -25,6 +25,7 @@
       "favicon": "./assets/image/mini-logo.png"
     },
     "extra": {
+      "API_URL": "http://moneycare-api.ddns.net:8000/",
       "eas": {
         "projectId": "27d84c12-bba3-4041-b73b-b545d32a6619"
       }

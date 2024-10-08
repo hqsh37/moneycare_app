@@ -6,7 +6,6 @@ import Savings from "./Savings";
 
 const Account = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-
   const tabData = [
     { name: "Tài Khoản", component: <SubAccount /> },
     { name: "Sổ Tiết Kiệm", component: <Savings /> },

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   TextInput,
@@ -8,12 +8,26 @@ import {
   Pressable,
   StyleSheet,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons"; // Sử dụng cho biểu tượng con mắt
+import Icon from "react-native-vector-icons/Ionicons";
+
+import { storeData, getData, removeData } from "../../utils/storage";
+import { loginAuthContext, AuthContext } from "../../utils/AuthContext";
+import { loginAuth } from "../../services/auth";
 
 export default function Login() {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { loginAuthContext } = useContext(AuthContext);
+
+  const handleLogin = async () => {
+    const token = await loginAuth(email, password);
+
+    if (token) {
+      loginAuthContext(token);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -23,8 +37,8 @@ export default function Login() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          value={emailOrPhone}
-          onChangeText={setEmailOrPhone}
+          value={email}
+          onChangeText={setemail}
           keyboardType="email-address"
         />
         <View style={styles.passwordContainer}>
@@ -47,7 +61,10 @@ export default function Login() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.loginButton}>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => handleLogin()}
+        >
           <Text style={styles.loginButtonText}>ĐĂNG NHẬP</Text>
         </TouchableOpacity>
 
@@ -60,6 +77,9 @@ export default function Login() {
           </TouchableOpacity>
         </View>
       </Pressable>
+      <View style={styles.txtBottom}>
+        <Text>© 2024 Copyright – Money care</Text>
+      </View>
     </View>
   );
 }
@@ -125,5 +145,13 @@ const styles = StyleSheet.create({
   linkText: {
     color: "#00aaff",
     fontSize: 14,
+  },
+  txtBottom: {
+    width: "100%",
+    position: "absolute",
+    bottom: 0,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

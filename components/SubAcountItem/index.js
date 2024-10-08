@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-const SubAccountItem = ({ name, amount = 0, IconType }) => {
+const SubAccountItem = ({ name, amount = 0, IconType, onPress = () => {} }) => {
   return (
     <View style={styles.accountItem}>
       <View style={styles.accountIcon}>{IconType}</View>
@@ -10,7 +10,12 @@ const SubAccountItem = ({ name, amount = 0, IconType }) => {
         <Text style={styles.accountName}>{name}</Text>
         <Text style={styles.accountAmount}>{amount}</Text>
       </View>
-      <MaterialIcons name="more-vert" size={24} color="gray" />
+      <MaterialIcons
+        name="more-vert"
+        size={24}
+        color="gray"
+        onPress={onPress}
+      />
     </View>
   );
 };

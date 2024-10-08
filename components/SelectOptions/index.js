@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,13 @@ import {
   StyleSheet,
 } from "react-native";
 
-const SelectOptions = ({ data, type, modal = false, onSelectionChange }) => {
+const SelectOptions = ({
+  data,
+  type,
+  modal = false,
+  onSelectionChange,
+  indexDefault = false,
+}) => {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -16,15 +22,21 @@ const SelectOptions = ({ data, type, modal = false, onSelectionChange }) => {
   const handleSelect = (item) => {
     if (type === "radio") {
       setSelectedOptions([item]);
-      onSelectionChange([item]); // Trả về tùy chọn đã chọn
+      onSelectionChange([item]);
     } else if (type === "checkbox") {
       const updatedSelection = selectedOptions.includes(item)
         ? selectedOptions.filter((i) => i !== item)
         : [...selectedOptions, item];
       setSelectedOptions(updatedSelection);
-      onSelectionChange(updatedSelection); // Trả về danh sách các tùy chọn đã chọn
+      onSelectionChange(updatedSelection);
     }
   };
+
+  useEffect(() => {
+    if (indexDefault !== false) {
+      handleSelect(data[indexDefault]);
+    }
+  }, []);
 
   // Đóng hoặc mở modal
   const toggleModal = () => setModalVisible(!isModalVisible);
@@ -154,7 +166,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "#f0f4f8",
   },
   optionContainer: {
     flexDirection: "row",
