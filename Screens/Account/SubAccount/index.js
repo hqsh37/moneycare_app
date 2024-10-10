@@ -11,10 +11,11 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { default as ModalNew } from "react-native-modal";
+import Toast from "react-native-toast-message";
 
 import ActionMenu from "./ActionMenu";
 import SubAccountItem from "../../../components/SubAcountItem";
-import { getListAccounts } from "../../../services/account";
+import { getListAccounts, removeAaccount } from "../../../services/account";
 import EmptyItem from "../../../components/EmptyItem";
 import AddAccountScreen from "./AddAccountScreen";
 import UpdateAccountScreen from "./UpdateAccountScreen";
@@ -30,6 +31,7 @@ const SubAccount = () => {
   const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
   const [isAcctionMenu, setAcctionMenu] = useState(false);
   const [acctionAccount, setAcctionAccount] = useState({});
+  const [reload, setReload] = useState(false);
 
   useEffect(() => {
     const hanldeGetAccounts = async () => {
@@ -54,7 +56,7 @@ const SubAccount = () => {
     };
 
     hanldeGetAccounts();
-  }, []);
+  }, [reload]);
 
   const getIconByType = (type) => {
     switch (type) {
@@ -93,10 +95,30 @@ const SubAccount = () => {
   const handleRemoveAccount = () => {
     setModalVisibleRemove(true);
   };
+
   // confirm remove account
   const handleRemoveConfirm = () => {
     setModalVisibleRemove(false);
-    // Call API remove account
+
+    // handle deleteAccount
+    const handleRemoveApi = async () => {
+      return await removeAaccount(acctionAccount.id);
+    };
+
+    if (handleRemoveApi()) {
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: "Tài khoản xoá thành công!",
+      });
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Xoá thất bại, Vui lòng kiểm tra lại!",
+      });
+    }
+
     const index = accounts.findIndex(
       (account) => account.id === acctionAccount.id
     );
@@ -115,10 +137,33 @@ const SubAccount = () => {
   return (
     <View style={styles.wrapper}>
       {accounts.length === 0 ? (
-        <EmptyItem
-          title="Bạn chưa có tài khoản nào!"
-          btnTitle="Thêm tài khoản"
-        />
+        <>
+          <EmptyItem
+            title="Bạn chưa có tài khoản nào!"
+            btnTitle="Thêm tài khoản"
+            onPress={() => setModalVisibleCreate(true)}
+          />
+
+          {/* Nút thêm tài khoản */}
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={() => setModalVisibleCreate(true)}
+          >
+            <Ionicons name="add" size={30} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Modal hiển thị màn hình AddAccountScreen */}
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={modalVisibleCreate}
+            onRequestClose={() => setModalVisibleCreate(false)}
+          >
+            <AddAccountScreen
+              onPressClose={() => setModalVisibleCreate(false)}
+            />
+          </Modal>
+        </>
       ) : (
         <>
           {/* Hiển thị tổng tiền */}
@@ -163,7 +208,10 @@ const SubAccount = () => {
             onRequestClose={() => setModalVisibleCreate(false)}
           >
             <AddAccountScreen
-              onPressClose={() => setModalVisibleCreate(false)}
+              onPressClose={() => {
+                setModalVisibleCreate(false);
+                setReload(!reload);
+              }}
             />
           </Modal>
 
@@ -190,6 +238,7 @@ const SubAccount = () => {
               onPressClose={() => {
                 setModalVisibleUpdate(false);
                 setAcctionMenu(false);
+                setReload(!reload);
               }}
               name={acctionAccount.name}
               balance={acctionAccount.amount}
@@ -210,6 +259,7 @@ const SubAccount = () => {
           />
         </>
       )}
+      <Toast />
     </View>
   );
 };

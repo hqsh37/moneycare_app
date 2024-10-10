@@ -12,7 +12,7 @@ import Toast from "react-native-toast-message";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import SelectOptions from "../../../components/SelectOptions";
-import { createAccount } from "../../../services/account";
+import { updateAaccount } from "../../../services/account";
 
 const accounts = [
   {
@@ -50,14 +50,19 @@ const UpdateAccountScreen = ({
     }
   };
 
-  const handleCreateLoading = async () => {
-    // Gọi hàm createAccount và trả về kết quả
-    return await createAccount(accountName, typeAccount, initialBalance, desc);
+  const handleUpdating = async () => {
+    return await updateAaccount(
+      id,
+      accountName,
+      typeAccount,
+      initialBalance,
+      desc
+    );
   };
 
   // Handle save
   const handleSave = async () => {
-    const result = await handleCreateLoading();
+    const result = await handleUpdating();
     if (
       initialBalance.trim() === "" ||
       isNaN(initialBalance) ||
@@ -94,7 +99,7 @@ const UpdateAccountScreen = ({
       Toast.show({
         type: "error",
         text1: "Lỗi",
-        text2: "Có lỗi khi tạo tài khoản. Vui lòng thử lại.",
+        text2: "Không thể thêm dữ liệu, Vui lòng thử lại!",
       });
     }
   };

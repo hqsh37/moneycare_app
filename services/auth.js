@@ -9,7 +9,7 @@ export const loginAuth = async (email, password) => {
       setAuthToken(token);
       return token;
     } else {
-      console.log("No token received");
+      return 0;
     }
   } catch (error) {
     if (error.response) {

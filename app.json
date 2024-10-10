@@ -8,13 +8,13 @@
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/image/logo.png",
-      "resizeMode": 100,
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/image/logo.png",
         "backgroundColor": "#ffffff"
@@ -25,7 +25,6 @@
       "favicon": "./assets/image/mini-logo.png"
     },
     "extra": {
-      "API_URL": "http://moneycare-api.ddns.net:8000/",
       "eas": {
         "projectId": "27d84c12-bba3-4041-b73b-b545d32a6619"
       }

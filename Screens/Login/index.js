@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
-import { storeData, getData, removeData } from "../../utils/storage";
-import { loginAuthContext, AuthContext } from "../../utils/AuthContext";
+import { AuthContext } from "../../utils/AuthContext";
 import { loginAuth } from "../../services/auth";
+import Toast from "react-native-toast-message";
 
 export default function Login() {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -23,9 +23,28 @@ export default function Login() {
 
   const handleLogin = async () => {
     const token = await loginAuth(email, password);
+    console.log(token);
 
-    if (token) {
+    if (token === 0) {
       loginAuthContext(token);
+      Toast.show({
+        type: "error",
+        text1: "lỗi",
+        text2: "Server Error",
+      });
+    } else if (token) {
+      loginAuthContext(token);
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: "token: " + token,
+      });
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Tài khoản không chính xác!. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -80,6 +99,7 @@ export default function Login() {
       <View style={styles.txtBottom}>
         <Text>© 2024 Copyright – Money care</Text>
       </View>
+      <Toast />
     </View>
   );
 }
