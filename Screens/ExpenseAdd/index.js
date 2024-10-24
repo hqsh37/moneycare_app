@@ -66,16 +66,6 @@ export default function ExpenseAdd() {
     { key: "2", label: "Thu tiền", icon: "add-circle-outline", color: "green" },
   ];
 
-  const hangmucs = ["suc khoẻ", "ăn uống", "đi lại", "quà cáp"];
-
-  //   handle hạng mục
-
-  const [hangmuc, setHangmuc] = useState([]);
-
-  const handleHangmucChange = (selectedItems) => {
-    setHangmuc(selectedItems);
-  };
-
   const accounts = ["ví sang", "ví b", "ngân hàng c"];
 
   const toggleModal = () => {
@@ -138,13 +128,6 @@ export default function ExpenseAdd() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Chọn hạng mục</Text>
-            <View style={styles.categoryContainer}>
-              <SelectOptions
-                data={hangmucs}
-                type="radio"
-                onSelectionChange={handleHangmucChange}
-              />
-            </View>
           </View>
 
           <View style={styles.inputContainer}>

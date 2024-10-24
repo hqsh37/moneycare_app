@@ -6,28 +6,18 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  Button,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import CategoryScreen from "./CategoryScreen";
+import FinancialReport from "./FinancialReport";
+import ExpenseAnalysis from "./ExpenseAnalysis";
 
-// Các component trang (đảm bảo đây là function components)
-const FinancialReport = () => (
-  <View>
-    <Text style={styles.pageText}>Tài chính hiện tại</Text>
-  </View>
-);
+// Các component trang (đảm bảo đây là function components);
 
 const IncomeExpenseReport = () => (
   <View>
     <Text style={styles.pageText}>Tình hình thu chi</Text>
-  </View>
-);
-
-const ExpenseAnalysis = () => (
-  <View>
-    <Text style={styles.pageText}>Phân tích chi tiêu</Text>
   </View>
 );
 

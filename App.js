@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { AuthContext, AuthProvider } from "./utils/AuthContext"; // Import AuthContext
+import { AuthContext, AuthProvider } from "./utils/AuthContext";
 import Taskbar from "./components/Taskbar";
 import Login from "./Screens/Login";
 
 const AppContent = () => {
-  const { token, loading } = useContext(AuthContext); // Lấy token từ context
+  const { token, loading } = useContext(AuthContext);
 
   if (loading) {
     return (

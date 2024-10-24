@@ -5,7 +5,8 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Modal, // Import Modal từ react-native
+  Modal,
+  RefreshControl,
 } from "react-native";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
@@ -20,6 +21,7 @@ import EmptyItem from "../../../components/EmptyItem";
 import AddAccountScreen from "./AddAccountScreen";
 import UpdateAccountScreen from "./UpdateAccountScreen";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import Loading from "../../../components/Loading";
 
 const accountStorages = [];
 
@@ -32,9 +34,14 @@ const SubAccount = () => {
   const [isAcctionMenu, setAcctionMenu] = useState(false);
   const [acctionAccount, setAcctionAccount] = useState({});
   const [reload, setReload] = useState(false);
+  const [isloading, setIsloading] = useState(false);
+
+  // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  // await delay(3000);
 
   useEffect(() => {
     const hanldeGetAccounts = async () => {
+      setIsloading(true);
       const accountNews = [];
       const accountDatas = await getListAccounts();
       if (accountDatas) {
@@ -53,6 +60,7 @@ const SubAccount = () => {
       } else if (accountDatas === 0) {
         setAccounts([]);
       }
+      setIsloading(false);
     };
 
     hanldeGetAccounts();
@@ -134,36 +142,45 @@ const SubAccount = () => {
     setAcctionMenu(!isAcctionMenu);
   };
 
+  // Hàm này được gọi khi người dùng vuốt xuống để làm mới
+  const onRefresh = () => {
+    setReload(!reload);
+  };
+
   return (
     <View style={styles.wrapper}>
-      {accounts.length === 0 ? (
-        <>
-          <EmptyItem
-            title="Bạn chưa có tài khoản nào!"
-            btnTitle="Thêm tài khoản"
-            onPress={() => setModalVisibleCreate(true)}
-          />
-
-          {/* Nút thêm tài khoản */}
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={() => setModalVisibleCreate(true)}
-          >
-            <Ionicons name="add" size={30} color="#fff" />
-          </TouchableOpacity>
-
-          {/* Modal hiển thị màn hình AddAccountScreen */}
-          <Modal
-            animationType="slide"
-            transparent={false}
-            visible={modalVisibleCreate}
-            onRequestClose={() => setModalVisibleCreate(false)}
-          >
-            <AddAccountScreen
-              onPressClose={() => setModalVisibleCreate(false)}
+      {accounts.length === 0 || isloading ? (
+        isloading ? (
+          <Loading />
+        ) : (
+          <>
+            <EmptyItem
+              title="Bạn chưa có tài khoản nào!"
+              btnTitle="Thêm tài khoản"
+              onPress={() => setModalVisibleCreate(true)}
             />
-          </Modal>
-        </>
+
+            {/* Nút thêm tài khoản */}
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => setModalVisibleCreate(true)}
+            >
+              <Ionicons name="add" size={30} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Modal hiển thị màn hình AddAccountScreen */}
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={modalVisibleCreate}
+              onRequestClose={() => setModalVisibleCreate(false)}
+            >
+              <AddAccountScreen
+                onPressClose={() => setModalVisibleCreate(false)}
+              />
+            </Modal>
+          </>
+        )
       ) : (
         <>
           {/* Hiển thị tổng tiền */}
@@ -173,11 +190,11 @@ const SubAccount = () => {
             </Text>
           </View>
 
-          {/* Danh sách tài khoản */}
           <View style={styles.accountList}>
             <FlatList
               data={accounts}
               keyExtractor={(item) => item.id.toString()}
+              refreshControl={<RefreshControl onRefresh={onRefresh} />}
               renderItem={({ item }) => {
                 const IconType = getIconByType(item.type);
                 return (
@@ -255,7 +272,9 @@ const SubAccount = () => {
               setModalVisibleRemove(false);
               setAcctionMenu(false);
             }}
-            onConfirm={() => handleRemoveConfirm()}
+            onConfirm={() => {
+              handleRemoveConfirm();
+            }}
           />
         </>
       )}

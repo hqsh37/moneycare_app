@@ -7,15 +7,20 @@ import {
   Keyboard,
   Pressable,
   StyleSheet,
+  Modal,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
 import { AuthContext } from "../../utils/AuthContext";
 import { loginAuth } from "../../services/auth";
 import Toast from "react-native-toast-message";
+import ForgotPass from "./ForgotPass";
+import Sigup from "./Signup";
 
 export default function Login() {
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [forgotPassVisible, setForgotPassVisible] = useState(false);
+  const [sigupVisible, setSigupVisible] = useState(false);
   const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -88,10 +93,10 @@ export default function Login() {
         </TouchableOpacity>
 
         <View style={styles.linkContainer}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setForgotPassVisible(true)}>
             <Text style={styles.linkText}>QUÊN MẬT KHẨU?</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setSigupVisible(true)}>
             <Text style={styles.linkText}>ĐĂNG KÝ</Text>
           </TouchableOpacity>
         </View>
@@ -99,6 +104,25 @@ export default function Login() {
       <View style={styles.txtBottom}>
         <Text>© 2024 Copyright – Money care</Text>
       </View>
+      {/* Modal forgot password */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={forgotPassVisible}
+        onRequestClose={() => setForgotPassVisible(false)}
+      >
+        <ForgotPass onBack={() => setForgotPassVisible(false)} />
+      </Modal>
+
+      {/* Modal Sigup */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={sigupVisible}
+        onRequestClose={() => setSigupVisible(false)}
+      >
+        <Sigup onBack={() => setSigupVisible(false)} />
+      </Modal>
       <Toast />
     </View>
   );
