@@ -135,3 +135,13 @@ export const createAccount = async (
     return false;
   }
 };
+
+export const convertDataAccount = (array) => {
+  return array.map((item) => ({
+    id: item.id,
+    name: item.tentaikhoan || "Tài khoản không tên",
+    amount: item.sotien || 0,
+    type: item.loaitaikhoan || "cash",
+    desc: item.diengiai || "",
+  }));
+};

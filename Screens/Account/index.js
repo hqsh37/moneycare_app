@@ -1,13 +1,22 @@
 import React, { useState } from "react";
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
-
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import SubAccount from "./SubAccount";
 import Savings from "./Savings";
+import Icon from "../../components/Icon";
 
 const Account = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isSearch, setIsSearch] = useState(false);
+  const [textSearch, setTextSearch] = useState(false);
+
   const tabData = [
-    { name: "Tài Khoản", component: <SubAccount /> },
+    { name: "Tài Khoản", component: <SubAccount textSearch={textSearch} /> },
     { name: "Sổ Tiết Kiệm", component: <Savings /> },
   ];
 
@@ -15,32 +24,60 @@ const Account = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.ctrlHeader}>
-          <View>
-            <Text>...</Text>
-          </View>
-          <Text style={styles.textTile}>Tài khoản</Text>
-          <View>
-            <Text>...</Text>
-          </View>
-        </View>
-        <View style={styles.navbar}>
-          {tabData.map((tab, index) => {
-            const isFocused = selectedIndex === index;
-            return (
-              <TouchableOpacity
-                key={tab.name}
-                onPress={() => setSelectedIndex(index)}
-                style={styles.tab}
-              >
-                <Text
-                  style={[styles.tabText, isFocused && styles.activeTabText]}
-                >
-                  {tab.name}
-                </Text>
-                {isFocused && <View style={styles.underline} />}
+          {isSearch ? (
+            <View style={styles.inputGroup}>
+              <TouchableOpacity onPress={() => setIsSearch(false)}>
+                <Icon
+                  style={styles.icon}
+                  icon="arrow-left"
+                  iconLib="FontAwesome6"
+                  size={20}
+                  color="#fff"
+                />
               </TouchableOpacity>
-            );
-          })}
+              <TextInput
+                style={styles.input}
+                placeholder="Nhập tìm kiếm theo tên..."
+                placeholderTextColor="#ccc"
+                value={textSearch}
+                onChangeText={setTextSearch}
+              />
+            </View>
+          ) : (
+            <View style={styles.navHeader}>
+              <TouchableOpacity onPress={() => setIsSearch(true)}>
+                <Icon
+                  style={styles.icon}
+                  icon="search"
+                  iconLib="FontAwesome"
+                  size={20}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+              <Text style={styles.textTile}>Tài khoản</Text>
+              <Text style={styles.moreOptions}>...</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.navbar}>
+          {tabData.map((tab, index) => (
+            <TouchableOpacity
+              key={tab.name}
+              onPress={() => setSelectedIndex(index)}
+              style={styles.tab}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedIndex === index && styles.activeTabText,
+                ]}
+              >
+                {tab.name}
+              </Text>
+              {selectedIndex === index && <View style={styles.underline} />}
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -61,19 +98,44 @@ const styles = StyleSheet.create({
     backgroundColor: "#009FDA",
   },
   ctrlHeader: {
-    alignItems: "center",
-    justifyContent: "space-between",
     flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 8,
+  },
+  navHeader: {
+    height: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
   },
   textTile: {
     fontSize: 18,
     color: "#fff",
   },
+  moreOptions: {
+    fontSize: 20,
+    color: "#fff",
+  },
   navbar: {
     flexDirection: "row",
     justifyContent: "space-around",
+  },
+  inputGroup: {
+    height: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  icon: {
+    paddingRight: 10,
+  },
+  input: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    color: "#fff",
   },
   tab: {
     alignItems: "center",

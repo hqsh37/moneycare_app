@@ -88,3 +88,12 @@ export const getAllAsyncDataActions = async () => {
     console.error("Lỗi khi lấy danh sách hành động:", error);
   }
 };
+
+export const deleteAsyncDataActions = async () => {
+  try {
+    await AsyncStorage.removeItem(ACTIONS_KEY);
+    console.log("Dữ liệu đã được xóa");
+  } catch (error) {
+    console.error("Lỗi khi xóa dữ liệu:", error);
+  }
+};

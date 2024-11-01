@@ -12,17 +12,15 @@ import Toast from "react-native-toast-message";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import SelectOptions from "../../../components/SelectOptions";
-import { updateAaccount } from "../../../services/account";
+import {
+  getAccountData,
+  saveAccountData,
+} from "../../../stores/accountStorage";
+import { addHandleAsyncData } from "../../../services/asyncData";
 
 const accounts = [
-  {
-    name: "Tiền mặt",
-    type: "cash",
-  },
-  {
-    name: "Ngân hàng",
-    type: "bank",
-  },
+  { name: "Tiền mặt", type: "cash" },
+  { name: "Ngân hàng", type: "bank" },
 ];
 
 const UpdateAccountScreen = ({
@@ -33,75 +31,79 @@ const UpdateAccountScreen = ({
   descOld = "",
   onPressClose,
 }) => {
-  const [initialBalance, setInitialBalance] = useState(balance);
+  const [initialBalance, setInitialBalance] = useState(balance || "0 đ");
   const [accountName, setAccountName] = useState(name);
-  const [account, setAccount] = useState(accounts[0].name);
   const [typeAccount, setTypeAccount] = useState(type);
   const [desc, setDesc] = useState(descOld);
 
-  // Handle Account change
   const handleAccountChange = (selectedName) => {
-    setAccount(selectedName);
     const selectedAccount = accounts.find(
       (account) => account.name === selectedName[0]
     );
-    if (selectedAccount) {
-      setTypeAccount(selectedAccount.type);
-    }
+    if (selectedAccount) setTypeAccount(selectedAccount.type);
   };
+
+  const formatCurrency = (value) => {
+    const number = parseInt(value.replace(/[^0-9]/g, ""), 10);
+    return isNaN(number) ? "0 đ" : number.toLocaleString("vi-VN") + " đ";
+  };
+
+  const parseCurrency = (value) =>
+    parseInt(value.replace(/\./g, "").replace(" đ", ""), 10);
+
+  const handleDataUpdate = (dataOld, accountPrepare) =>
+    dataOld.map((cat) =>
+      cat.id === accountPrepare.id ? { ...cat, ...accountPrepare } : cat
+    );
 
   const handleUpdating = async () => {
-    return await updateAaccount(
-      id,
-      accountName,
-      typeAccount,
-      initialBalance,
-      desc
-    );
+    const accountPrepare = {
+      id: id,
+      name: accountName,
+      amount: parseCurrency(initialBalance),
+      type: typeAccount,
+      desc: desc || null,
+    };
+
+    await addHandleAsyncData({
+      type: "update",
+      tbl: "account",
+      id: accountPrepare.id,
+      data: { ...accountPrepare, balance: accountPrepare.amount },
+    });
+
+    const dataOld = await getAccountData();
+    return await saveAccountData(handleDataUpdate(dataOld, accountPrepare));
   };
 
-  // Handle save
   const handleSave = async () => {
-    const result = await handleUpdating();
-    if (
-      initialBalance.trim() === "" ||
-      isNaN(initialBalance) ||
-      initialBalance < 1
-    ) {
-      Toast.show({
+    if (parseCurrency(initialBalance) === 0) {
+      return Toast.show({
         type: "error",
         text1: "Lỗi",
         text2: "Vui lòng nhập số dư ban đầu hợp lệ",
       });
-      return;
     }
-
-    if (accountName.trim() === "") {
-      Toast.show({
+    if (!accountName.trim()) {
+      return Toast.show({
         type: "error",
         text1: "Lỗi",
         text2: "Vui lòng nhập tên tài khoản",
       });
-      return;
     }
-
-    if (result) {
-      Toast.show({
-        type: "success",
-        text1: "Thành công",
-        text2: "Tài khoản đã được thêm thành công",
-      });
-
-      setTimeout(() => {
-        onPressClose();
-      }, 1500);
-    } else {
-      Toast.show({
-        type: "error",
-        text1: "Lỗi",
-        text2: "Không thể thêm dữ liệu, Vui lòng thử lại!",
-      });
-    }
+    const result = await handleUpdating();
+    result
+      ? Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Tài khoản đã được thêm thành công",
+        })
+      : Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Không thể thêm dữ liệu, Vui lòng thử lại!",
+        });
+    setTimeout(onPressClose, 1500);
   };
 
   return (
@@ -130,22 +132,14 @@ const UpdateAccountScreen = ({
           <Text>
             Số dư ban đầu <Text style={styles.required}>*</Text>
           </Text>
-          {initialBalance ? (
-            <TextInput
-              style={styles.balanceInput}
-              keyboardType="numeric"
-              value={initialBalance}
-              onChangeText={setInitialBalance}
-            />
-          ) : (
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={initialBalance}
-              onChangeText={setInitialBalance}
-              placeholder="Nhập số dư ban đầu"
-            />
-          )}
+          <TextInput
+            style={styles.balanceInput}
+            keyboardType="numeric"
+            value={initialBalance}
+            onChangeText={(text) => {
+              setInitialBalance(formatCurrency(text));
+            }}
+          />
         </View>
 
         {/* Tên tài khoản */}

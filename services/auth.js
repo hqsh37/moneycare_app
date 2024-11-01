@@ -30,3 +30,22 @@ export const logoutAuth = async () => {
     console.error("Error during logout:", error);
   }
 };
+
+// get information about user
+export const getInfo = async () => {
+  try {
+    const response = await api.post("/auth/me");
+    if ((data = response.data?.data)) {
+      return data;
+    } else {
+      return 0;
+    }
+  } catch (error) {
+    if (error.response) {
+      console.log("Error data:", error.response.data);
+    } else {
+      console.log("Error:", error.message);
+    }
+    return false;
+  }
+};

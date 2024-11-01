@@ -1,7 +1,6 @@
 import { storeData, getData, removeData } from "../utils/storage";
 
 const FILE_NAME = "category_spend_data";
-const FILE_NAMEUPDATE = "category_spend_dataupdate";
 
 // Lưu danh mục chi tiêu
 export const saveCategorySpend = async (categories) => {

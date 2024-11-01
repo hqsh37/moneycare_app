@@ -18,14 +18,16 @@ import CreateCategory from "./CreateCategory";
 import {
   getCategorySpend,
   saveCategorySpend,
-} from "../../../services/categorySpend";
+} from "../../../stores/categorySpend";
 import {
   getCategoryCollect,
   saveCategoryCollect,
-} from "../../../services/categoryCollect";
+} from "../../../stores/categoryCollect";
 import { categorySpend, categoryCollect } from "./data";
 import Loading from "../../../components/Loading";
 import Toast from "react-native-toast-message";
+import { asyncDataCloud } from "../../../handlers/dataAsyncHandle";
+import { checkNetworkStatus } from "../../../services/asyncDataCloud";
 
 const CategoryScreen = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState({
@@ -41,7 +43,6 @@ const CategoryScreen = ({ onBack }) => {
   });
   const [categoriesThu, setCategoriesThu] = useState([]);
   const [categoriesChi, setCategoriesChi] = useState([]);
-  const [categoryData, setCategoryData] = useState([]);
   const [originalCategories, setOriginalCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [expandedCategory, setExpandedCategory] = useState(null);
@@ -55,11 +56,16 @@ const CategoryScreen = ({ onBack }) => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+
+      await asyncData();
       // Tải dữ liệu chi tiêu (Spend)
       const dataSpendLocal = await getCategorySpend();
       if (dataSpendLocal.length === 0) {
         console.log("Dữ liệu chi tiêu chưa có, lưu dữ liệu mẫu");
         await saveCategorySpend(categorySpend);
+
+        // lấy dữ liệu nếu không có(cần sử lý)
+        setCategoriesChi(categorySpend);
       } else {
         setCategoriesChi(dataSpendLocal);
       }
@@ -69,6 +75,9 @@ const CategoryScreen = ({ onBack }) => {
       if (dataCollectLocal.length === 0) {
         console.log("Dữ liệu thu nhập chưa có, lưu dữ liệu mẫu");
         await saveCategoryCollect(categoryCollect);
+
+        // lấy dữ liệu nếu không có(cần sử lý)
+        setCategoriesThu(categoryCollect);
       } else {
         setCategoriesThu(dataCollectLocal);
       }
@@ -85,11 +94,9 @@ const CategoryScreen = ({ onBack }) => {
   const handleSetCategotyForTab = () => {
     if (activeTab.name === "Chi tiền") {
       setCategories(categoriesChi);
-      setCategoryData(categoriesChi);
       setOriginalCategories(flattenCategories(categoriesChi));
     } else {
       setCategories(categoriesThu);
-      setCategoryData(categoriesThu);
       setOriginalCategories(flattenCategories(categoriesThu));
     }
   };
@@ -113,19 +120,6 @@ const CategoryScreen = ({ onBack }) => {
           });
         });
       }
-    });
-    return flattened;
-  };
-
-  const flattenCategoryParent = (categories) => {
-    const flattened = [];
-    categories.forEach((category) => {
-      flattened.push({
-        id: category.id,
-        name: category.name,
-        icon: category.icon,
-        iconLib: category.iconLib,
-      });
     });
     return flattened;
   };
@@ -171,22 +165,18 @@ const CategoryScreen = ({ onBack }) => {
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
   };
 
-  const findParentCategory = (item) => {
-    for (let category of categoryData) {
-      if (category.children) {
-        const childCategory = category.children.find(
-          (child) => child.id === item.id
-        );
-        if (childCategory) {
-          return category;
-        }
-      }
-    }
-    return null;
-  };
-
   const onRefresh = () => {
     setRefresh(!refresh);
+  };
+
+  const asyncData = async () => {
+    const isConnected = await checkNetworkStatus();
+    if (isConnected) {
+      console.log("Device is online");
+      await asyncDataCloud();
+    } else {
+      console.log("Device is offline");
+    }
   };
 
   return (
@@ -282,16 +272,24 @@ const CategoryScreen = ({ onBack }) => {
           onBack={() => {
             setModalVisibleUpdate(false);
           }}
-          parent={
-            selectedCategory?.children
-              ? false
-              : findParentCategory(selectedCategory)
-          }
-          parents={
-            selectedCategory?.children
-              ? false
-              : flattenCategoryParent(categoryData)
-          }
+          onSuccess={() => {
+            setModalVisibleUpdate(false);
+            setRefresh(!refresh);
+            Toast.show({
+              type: "success",
+              text1: "Sửa hạng mục thành công!",
+            });
+          }}
+          onDelSuccess={() => {
+            setModalVisibleUpdate(false);
+            setRefresh(!refresh);
+            Toast.show({
+              type: "success",
+              text1: "Xoá hạng mục thành công!",
+            });
+          }}
+          isParent={selectedCategory?.children ? false : true}
+          tab={activeTab.type}
         />
       </Modal>
       {/* Modal create */}

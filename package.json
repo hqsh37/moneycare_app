@@ -5,8 +5,8 @@
   "scripts": {
     "start": "expo start",
     "dev": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -21,12 +21,17 @@
     "axios": "^1.7.7",
     "axios-mock-adapter": "^2.0.0",
     "expo": "~51.0.38",
+    "expo-device": "~6.0.2",
+    "expo-file-system": "~17.0.1",
+    "expo-network": "~6.0.1",
+    "expo-notifications": "~0.28.19",
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.5",
+    "react-native-chart-kit": "^6.12.0",
     "react-native-date-picker": "^5.0.7",
-    "react-native-gesture-handler": " ~2.16.1",
+    "react-native-gesture-handler": "~2.16.1",
     "react-native-modal": "^13.0.1",
     "react-native-picker-select": "^9.3.1",
     "react-native-reanimated": "~3.10.1",
@@ -36,11 +41,10 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.1.0",
     "react-native-web": "~0.19.10",
-    "realm": "^20.0.0",
-    "expo-file-system": "~17.0.1"
+    "realm": "^20.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.24.0"
   },
   "private": true
 }

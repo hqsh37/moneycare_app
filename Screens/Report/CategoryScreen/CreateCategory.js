@@ -15,11 +15,11 @@ import IconSelector from "./IconSelector";
 import {
   getCategorySpend,
   saveCategorySpend,
-} from "../../../services/categorySpend";
+} from "../../../stores/categorySpend";
 import {
   getCategoryCollect,
   saveCategoryCollect,
-} from "../../../services/categoryCollect";
+} from "../../../stores/categoryCollect";
 import { iconList } from "./data";
 import Toast from "react-native-toast-message";
 import { addHandleAsyncData } from "../../../services/asyncData";
@@ -45,6 +45,7 @@ function CreateCategory({
   const [modalVisibleIcon, setModalVisibleIcon] = useState(false);
   const [categoryParents, setCategoryParents] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [categoryDesc, setCategoryDesc] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -151,7 +152,12 @@ function CreateCategory({
         type: "create",
         tbl: "category",
         id: categoryPrepare.id,
-        data: { ...categoryPrepare, type: tab, categoryParentId: 0 },
+        data: {
+          ...categoryPrepare,
+          type: tab,
+          categoryParentId: 0,
+          desc: categoryDesc,
+        },
       });
       handleStorageData([...categories, categoryPrepare]);
     } else {
@@ -164,6 +170,7 @@ function CreateCategory({
           ...categoryPrepare,
           type: tab,
           categoryParentId: categoryParent.id,
+          desc: categoryDesc,
         },
       });
       handleStorageData(
@@ -231,7 +238,12 @@ function CreateCategory({
         {/* Diễn giải */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Diễn giải</Text>
-          <TextInput style={styles.input} placeholder="Nhập diễn giải" />
+          <TextInput
+            style={styles.input}
+            placeholder="Nhập diễn giải"
+            value={categoryDesc}
+            onChangeText={setCategoryDesc}
+          />
         </View>
 
         {/* Nút hành động */}

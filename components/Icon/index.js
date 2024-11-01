@@ -2,6 +2,7 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -29,6 +30,10 @@ function Icon({
         );
       case "Ionicons":
         return <Ionicons name={icon} size={size} color={color} style={style} />;
+      case "FontAwesome6":
+        return (
+          <FontAwesome6 name={icon} size={size} color={color} style={style} />
+        );
       case "MaterialIcons":
         return (
           <MaterialIcons name={icon} size={size} color={color} style={style} />
