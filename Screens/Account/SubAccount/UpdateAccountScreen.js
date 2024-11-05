@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
   saveAccountData,
 } from "../../../stores/accountStorage";
 import { addHandleAsyncData } from "../../../services/asyncData";
+import { useDebounce } from "../../../hooks";
 
 const accounts = [
   { name: "Tiền mặt", type: "cash" },
@@ -31,10 +32,20 @@ const UpdateAccountScreen = ({
   descOld = "",
   onPressClose,
 }) => {
-  const [initialBalance, setInitialBalance] = useState(balance || "0 đ");
+  const [initialBalance, setInitialBalance] = useState(balance || "0");
   const [accountName, setAccountName] = useState(name);
   const [typeAccount, setTypeAccount] = useState(type);
   const [desc, setDesc] = useState(descOld);
+  const debouncedValue = useDebounce(initialBalance, 500);
+  const inputRef = useRef(null);
+  const [selection, setSelection] = useState({
+    start: 0,
+    end: 0,
+  });
+
+  useEffect(() => {
+    setInitialBalance((pre) => formatCurrency(pre));
+  }, [debouncedValue]);
 
   const handleAccountChange = (selectedName) => {
     const selectedAccount = accounts.find(
@@ -45,11 +56,11 @@ const UpdateAccountScreen = ({
 
   const formatCurrency = (value) => {
     const number = parseInt(value.replace(/[^0-9]/g, ""), 10);
-    return isNaN(number) ? "0 đ" : number.toLocaleString("vi-VN") + " đ";
+    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
   };
 
   const parseCurrency = (value) =>
-    parseInt(value.replace(/\./g, "").replace(" đ", ""), 10);
+    parseInt(value.replace(/\./g, "").trim(), 10);
 
   const handleDataUpdate = (dataOld, accountPrepare) =>
     dataOld.map((cat) =>
@@ -106,6 +117,20 @@ const UpdateAccountScreen = ({
     setTimeout(onPressClose, 1500);
   };
 
+  const handleFocus = () => {
+    setSelection({
+      start: 0,
+      end: initialBalance.length,
+    });
+  };
+
+  const handleChangeText = (text) => {
+    setInitialBalance(text);
+    if (selection) {
+      setSelection(null);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -132,14 +157,19 @@ const UpdateAccountScreen = ({
           <Text>
             Số dư ban đầu <Text style={styles.required}>*</Text>
           </Text>
-          <TextInput
-            style={styles.balanceInput}
-            keyboardType="numeric"
-            value={initialBalance}
-            onChangeText={(text) => {
-              setInitialBalance(formatCurrency(text));
-            }}
-          />
+
+          <View style={styles.balance}>
+            <TextInput
+              ref={inputRef}
+              style={styles.balanceInput}
+              keyboardType="numeric"
+              value={initialBalance}
+              onChangeText={handleChangeText}
+              onFocus={handleFocus}
+              selection={selection}
+            />
+            <Text style={styles.currency}>đ</Text>
+          </View>
         </View>
 
         {/* Tên tài khoản */}
@@ -226,13 +256,27 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 5,
   },
+  balance: {
+    position: "relative",
+  },
   balanceInput: {
+    paddingRight: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
     fontSize: 24,
-    paddingVertical: 5,
+    paddingVertical: 6,
+    color: "#00aaff",
+    fontWeight: "bold",
     textAlign: "right",
+  },
+  currency: {
+    position: "absolute",
+    paddingBottom: 7,
+    right: 0,
+    bottom: 0,
+    fontSize: 24,
     color: "#000",
+    textAlign: "right",
   },
   input: {
     borderBottomWidth: 1,

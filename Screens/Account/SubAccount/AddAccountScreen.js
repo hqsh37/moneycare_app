@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -31,11 +31,16 @@ const accounts = [
 ];
 
 const AddAccountScreen = ({ onPressClose }) => {
-  const [balanceView, setBalanceView] = useState("0 đ");
+  const [balanceView, setBalanceView] = useState("");
   const [accountName, setAccountName] = useState("");
   const [typeAccount, setTypeAccount] = useState(accounts[0].type);
   const [desc, setDesc] = useState("");
   const debouncedValue = useDebounce(balanceView, 500);
+  const inputRef = useRef(null);
+  const [selection, setSelection] = useState({
+    start: 0,
+    end: 0,
+  });
 
   const formatCurrency = (value) => {
     const number = parseInt(value.replace(/[^0-9]/g, ""));
@@ -119,6 +124,20 @@ const AddAccountScreen = ({ onPressClose }) => {
     }
   };
 
+  const handleFocus = () => {
+    setSelection({
+      start: 0,
+      end: balanceView.length,
+    });
+  };
+
+  const handleChangeText = (text) => {
+    setBalanceView(text);
+    if (selection) {
+      setSelection(null);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -147,10 +166,13 @@ const AddAccountScreen = ({ onPressClose }) => {
           </Text>
           <View style={styles.balance}>
             <TextInput
+              ref={inputRef}
               style={styles.balanceInput}
               keyboardType="numeric"
               value={balanceView}
-              onChangeText={setBalanceView}
+              onChangeText={handleChangeText}
+              onFocus={handleFocus}
+              selection={selection}
             />
             <Text style={styles.currency}>đ</Text>
           </View>
@@ -248,10 +270,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
     fontSize: 24,
-    paddingVertical: 5,
-    textAlign: "right",
+    paddingVertical: 6,
     color: "#00aaff",
-    fontWeight: "medium",
+    fontWeight: "bold",
+    textAlign: "right",
   },
   currency: {
     position: "absolute",

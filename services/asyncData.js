@@ -31,20 +31,19 @@ const isNumeric = (value) => {
   return !isNaN(value);
 };
 
-export const addHandleAsyncData = async ({ type, tbl, id, data }) => {
+export const addHandleAsyncData = async ({ type, tbl, id, data = {} }) => {
   try {
     const existingActions = (await readDataAsync(ACTIONS_KEY)) || [];
 
     // Nếu type là 'delete', kiểm tra điều kiện trùng id và tbl
     if (type === "delete") {
-      // Xóa các hành động có id và tbl trùng với hành động hiện tại
       const filteredActions = existingActions.filter(
         (action) => !(action.id === id && action.tbl === tbl)
       );
 
       // Không thêm vào nếu id là dạng 'tbl_intRand'
       if (!isNumeric(id)) {
-        console.log("Không thêm hành động với id không phải dạng số:", id);
+        console.log("Xoá tất cả hành động với id:", id);
         await saveDataAsync(ACTIONS_KEY, filteredActions);
         return;
       }
@@ -54,7 +53,6 @@ export const addHandleAsyncData = async ({ type, tbl, id, data }) => {
         type,
         tbl,
         id,
-        data,
       };
 
       const updatedActions = [...filteredActions, newAction];

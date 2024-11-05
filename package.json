@@ -41,7 +41,8 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.1.0",
     "react-native-web": "~0.19.10",
-    "realm": "^20.0.0"
+    "realm": "^20.0.0",
+    "expo-image-picker": "~15.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0"

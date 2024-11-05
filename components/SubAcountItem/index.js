@@ -1,22 +1,20 @@
 import React from "react";
+import { TouchableOpacity } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 const SubAccountItem = ({ name, amount = 0, IconType, onPress = () => {} }) => {
   return (
-    <View style={styles.accountItem}>
-      <View style={styles.accountIcon}>{IconType}</View>
-      <View style={styles.accountDetails}>
-        <Text style={styles.accountName}>{name}</Text>
-        <Text style={styles.accountAmount}>{amount}</Text>
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.accountItem}>
+        <View style={styles.accountIcon}>{IconType}</View>
+        <View style={styles.accountDetails}>
+          <Text style={styles.accountName}>{name}</Text>
+          <Text style={styles.accountAmount}>{amount}</Text>
+        </View>
+        <MaterialIcons name="more-vert" size={24} color="gray" />
       </View>
-      <MaterialIcons
-        name="more-vert"
-        size={24}
-        color="gray"
-        onPress={onPress}
-      />
-    </View>
+    </TouchableOpacity>
   );
 };
 

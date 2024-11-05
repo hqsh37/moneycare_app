@@ -31,7 +31,7 @@ import { asyncDataCloud } from "../../../handlers/dataAsyncHandle";
 import { addHandleAsyncData } from "../../../services/asyncData";
 import { useDebounce } from "../../../hooks";
 
-const SubAccount = ({ textSearch }) => {
+const SubAccount = ({ textSearch = "" }) => {
   const [accounts, setAccounts] = useState([]);
   const [accountViews, setAccountViews] = useState([]);
   const [sumCash, setSumCash] = useState(0);
@@ -61,6 +61,9 @@ const SubAccount = ({ textSearch }) => {
         );
         setSumCash(totalCash);
         setAccounts(accountDatas);
+        if (accountViews) {
+          setAccountViews(accountDatas);
+        }
       } else {
         setAccounts([]);
         setSumCash(0); // Đặt sumCash về 0 nếu không có dữ liệu
@@ -290,7 +293,7 @@ const SubAccount = ({ textSearch }) => {
           <ModalNew
             isVisible={isAcctionMenu}
             style={styles.modal}
-            onBackdropPress={toggleModal1} // Đóng modal khi nhấn ra ngoài
+            onBackdropPress={() => setAcctionMenu(false)}
           >
             <ActionMenu
               onUpdate={handleUpdateAccount}

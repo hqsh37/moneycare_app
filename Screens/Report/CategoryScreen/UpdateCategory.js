@@ -77,6 +77,8 @@ function UpdateCategory({
     loadData();
   }, [tab, item]); // Thêm phụ thuộc `tab` và `item`
 
+  console.log(item);
+
   const findParentCategory = (item, categories) => {
     for (let category of categories) {
       if (category?.children) {
@@ -205,27 +207,18 @@ function UpdateCategory({
     }
   };
 
-  const handleDelCategory = (categories, parentId, childId) => {
-    const categoryNew = categories || [];
-
-    for (let category of categoryNew) {
-      if (category.id === parentId) {
-        if (category.children) {
-          // Tìm chỉ mục (index) của đối tượng con cần xóa
-          const childIndex = category.children.findIndex(
-            (child) => child.id === childId
-          );
-
-          // Xóa đối tượng con nếu tìm thấy
-          if (childIndex !== -1) {
-            category.children.splice(childIndex, 1);
-          }
-        }
+  const handleDelCategory = (categories = [], parentId, childcate) => {
+    return categories.map((category) => {
+      if (category.id === parentId && category.children) {
+        category.children = category.children.filter(
+          (cat) => cat.id !== childcate.id
+        );
       }
-    }
-
-    return categoryNew;
+      return category;
+    });
   };
+
+  console.log(item);
 
   // Hàm xử lý lưu danh mục
   const handleSave = () => {
@@ -235,9 +228,18 @@ function UpdateCategory({
       ...categoryIcon,
     };
 
+    if (item?.ReplaceId) {
+      categoryPrepare.ReplaceId = item.id;
+      categoryPrepare.id = item.ReplaceId;
+    }
+
+    console.log(categoryPrepare);
+
     if (categoryDesc) {
       categoryPrepare.desc = categoryDesc;
     }
+
+    console.log(categoryPrepare);
 
     if (categoryName === "") {
       Toast.show({
@@ -284,6 +286,10 @@ function UpdateCategory({
       name: categoryName,
       ...categoryIcon,
     };
+
+    // if (item?.ReplaceId) {
+    //   categoryPrepare.ReplaceId = item.ReplaceId;
+    // }
 
     if (categoryParent.id === 0) {
       handleAsyncData({

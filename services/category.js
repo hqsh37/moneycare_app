@@ -94,6 +94,7 @@ export const convertCategoriesWithReplace = (data) => {
             icon: item.icon,
             iconLib: item.iconlib,
             hanmuccha: hanmuccha,
+            ReplaceId: item.id,
           };
         } else {
           itemMap[mapType][targetId] = { ...item };
