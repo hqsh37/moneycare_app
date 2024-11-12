@@ -4,73 +4,56 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Modal,
-  FlatList,
   TextInput,
   Image,
   Keyboard,
   Pressable,
+  Modal,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome, Ionicons, AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useDebounce } from "../../hooks";
-// Header Component
-function Header({ selectedOption, toggleModal, onBackPress, onConfirm }) {
-  return (
-    <View style={styles.headerContainer}>
-      <TouchableOpacity onPress={onBackPress}>
-        <Ionicons name="time-outline" size={24} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.headerButton} onPress={toggleModal}>
-        <Text style={styles.headerButtonText}>{selectedOption}</Text>
-        <Ionicons name="chevron-down-outline" size={16} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={onConfirm}>
-        <Ionicons name="checkmark-outline" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
-  );
-}
 
-// Option Modal Component
-function OptionModal({ isVisible, options, toggleModal, selectOption }) {
-  return (
-    <Modal visible={isVisible} transparent animationType="fade">
-      <TouchableOpacity style={styles.modalOverlay} onPress={toggleModal}>
-        <View style={styles.modalContent}>
-          <FlatList
-            data={options}
-            keyExtractor={(item) => item.key}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.optionContainer}
-                onPress={() => selectOption(item)}
-              >
-                <Ionicons name={item.icon} size={24} color={item.color} />
-                <Text style={styles.optionText}>{item.label}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-}
+import OptionModal from "./OptionModal";
+import CategoryAdd from "./CategoryAdd";
+import HeaderExpense from "./HeaderExpense";
+import Icon from "../../components/Icon";
+import AccountAdd from "./AccountAdd";
+import Toast from "react-native-toast-message";
+import HistoryScreen from "./HistoryScreen";
+
+// Initialize the current time
+const currentDateTime = new Date();
 
 export default function ExpenseAdd() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState("Chi tiền");
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
-  const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date());
+  const [date, setDate] = useState(currentDateTime);
+  const [time, setTime] = useState(currentDateTime);
   const [selectedImage, setSelectedImage] = useState(null);
   const debouncedValue = useDebounce(amount, 500);
+  const [selectedCategory, setSelectedCategory] = useState({
+    id: 0,
+    name: "Chọn hạng mục",
+    icon: "pricetag-outline",
+    iconLib: "Ionicons",
+  });
+  const [selectedAccount, setSelectedAccount] = useState({
+    id: 0,
+    name: "Chọn tài khoản",
+    type: "cash",
+  });
   const [selection, setSelection] = useState({
     start: 0,
     end: 0,
   });
+  // Visible toggle modal
+  const [modalVisibleCate, setModalVisibleCate] = useState(false);
+  const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
+  const [modalVisibleHistory, setModalVisibleHistory] = useState(false);
 
   // Trạng thái điều khiển DateTimePicker Modal
   const [showPicker, setShowPicker] = useState(false);
@@ -109,6 +92,12 @@ export default function ExpenseAdd() {
   const selectOption = useCallback((option) => {
     setSelectedOption(option.label);
     setModalVisible(false);
+    setSelectedCategory({
+      id: 0,
+      name: "Chọn hạng mục",
+      icon: "pricetag-outline",
+      iconLib: "Ionicons",
+    });
   }, []);
 
   // Hàm hiển thị DateTimePicker với mode ngày hoặc giờ
@@ -123,10 +112,20 @@ export default function ExpenseAdd() {
     setShowPicker(false);
 
     if (pickerMode === "date") {
-      setDate(currentDate);
+      setDate(currentDate); // Cập nhật ngày
     } else {
-      setTime(currentDate);
+      setTime(currentDate); // Cập nhật giờ
     }
+  };
+
+  // func handle categories
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+  };
+
+  // func handle account
+  const handleAccountSelect = (account) => {
+    setSelectedAccount(account);
   };
 
   // Hàm chọn ảnh từ thư viện hoặc camera
@@ -175,13 +174,69 @@ export default function ExpenseAdd() {
   const openImagePicker = () => handleImageSelection(false);
   const openCamera = () => handleImageSelection(true);
   const removeImage = () => setSelectedImage(null);
+
+  // convert date +7 UTC to local time
+  const getDateAndTime = (dateObj) => {
+    const date = `${dateObj.getDate().toString().padStart(2, "0")}/${(
+      dateObj.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${dateObj.getFullYear()}`;
+    const time = `${dateObj.getHours().toString().padStart(2, "0")}:${dateObj
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+    return { date, time };
+  };
+
+  const addHours = (dateObj, hours) => {
+    const newDate = new Date(dateObj);
+    newDate.setHours(newDate.getHours() + hours);
+    return newDate;
+  };
+
+  // Handle Toast Message save
+  const handleSave = () => {
+    if (parseCurrency(amount) == 0) {
+      Toast.show({
+        type: "error",
+        text1: "Vui lòng nhập số tiền lớn hơn 0",
+      });
+      return;
+    }
+
+    if (selectedCategory.id == 0) {
+      Toast.show({
+        type: "error",
+        text1: "Vui lòng chọn hạng mục!",
+      });
+      return;
+    }
+
+    if (selectedAccount.id == 0) {
+      Toast.show({
+        type: "error",
+        text1: "Vui lòng chọn tài khoản!",
+      });
+      return;
+    }
+
+    console.log(parseCurrency(amount));
+    console.log("Giờ: ", getDateAndTime(addHours(time, 0)).time);
+    console.log("Ngày: ", getDateAndTime(addHours(date, 0)).date);
+    console.log("id hạng mục: ", selectedCategory.id);
+    console.log("id tài khoản: ", selectedAccount.id);
+    console.log("hạng mục: ", desc);
+    console.log("image: ", selectedImage);
+  };
+
   return (
     <View style={styles.container}>
-      <Header
+      <HeaderExpense
         selectedOption={selectedOption}
         toggleModal={toggleModal}
-        onBackPress={() => console.log("lịch sử")}
-        onConfirm={() => console.log("Xác nhận")}
+        onBackPress={() => setModalVisibleHistory(true)}
+        onConfirm={() => handleSave()}
       />
 
       <OptionModal
@@ -202,6 +257,7 @@ export default function ExpenseAdd() {
                 onChangeText={handleChangeText}
                 onFocus={handleFocus}
                 selection={selection}
+                color={selectedOption === "Chi tiền" ? "red" : "green"}
               />
               <Text style={styles.moneyInputCurrency}>đ</Text>
             </View>
@@ -254,16 +310,27 @@ export default function ExpenseAdd() {
           {/* Tài khoản */}
           <TouchableOpacity
             style={styles.transactionRow}
-            onPress={() => console.log("Chọn tài khoản")}
+            onPress={() => setModalVisibleAcc(true)}
           >
-            <FontAwesome
-              name="credit-card"
-              size={24}
-              color="#333"
-              style={styles.transactionIcon}
-            />
+            {selectedAccount.type === "cash" ? (
+              <Ionicons
+                name="cash-outline"
+                size={24}
+                color="#333"
+                style={styles.transactionIcon}
+              />
+            ) : (
+              <FontAwesome
+                name="bank"
+                size={24}
+                color="#333"
+                style={styles.transactionIcon}
+              />
+            )}
             <View style={styles.transactionContent}>
-              <Text style={styles.transactionLabel}>Ví</Text>
+              <Text style={styles.transactionLabel}>
+                {selectedAccount.name}
+              </Text>
               <Ionicons name="chevron-forward" size={20} color="#aaa" />
             </View>
           </TouchableOpacity>
@@ -273,16 +340,19 @@ export default function ExpenseAdd() {
           {/* Hạng mục */}
           <TouchableOpacity
             style={styles.transactionRow}
-            onPress={() => console.log("Chọn hạng mục")}
+            onPress={() => setModalVisibleCate(true)}
           >
-            <Ionicons
-              name="pricetag-outline"
+            <Icon
+              iconLib={selectedCategory.iconLib}
+              icon={selectedCategory.icon}
               size={24}
               color="#333"
               style={styles.transactionIcon}
             />
             <View style={styles.transactionContent}>
-              <Text style={styles.transactionLabel}>Ăn uống</Text>
+              <Text style={styles.transactionLabel}>
+                {selectedCategory.name}
+              </Text>
               <Ionicons name="chevron-forward" size={20} color="#aaa" />
             </View>
           </TouchableOpacity>
@@ -321,13 +391,62 @@ export default function ExpenseAdd() {
             </View>
           )}
 
-          <View style={styles.dividerBlock} />
-
-          <TouchableOpacity style={styles.saveButton}>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={() => handleSave()}
+          >
             <Text style={styles.saveButtonText}>Lưu</Text>
           </TouchableOpacity>
         </Pressable>
       </View>
+
+      {/* Modal Accounts */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleAcc}
+        onRequestClose={() => setModalVisibleAcc(false)}
+      >
+        <AccountAdd
+          onBack={() => {
+            setModalVisibleAcc(false);
+          }}
+          selectedAccount={selectedAccount}
+          handleAccountSelect={handleAccountSelect}
+        />
+      </Modal>
+
+      {/* Modal Category */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleCate}
+        onRequestClose={() => setModalVisibleCate(false)}
+      >
+        <CategoryAdd
+          onBack={() => {
+            setModalVisibleCate(false);
+          }}
+          type={selectedOption}
+          selectedCategory={selectedCategory}
+          handleCategorySelect={handleCategorySelect}
+        />
+      </Modal>
+
+      {/* Modal History */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleHistory}
+        onRequestClose={() => setModalVisibleHistory(false)}
+      >
+        <HistoryScreen
+          onBack={() => {
+            setModalVisibleHistory(false);
+          }}
+        />
+      </Modal>
+      <Toast />
     </View>
   );
 }
@@ -351,19 +470,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerButtonText: { color: "white", fontSize: 16, marginRight: 5 },
-  modalOverlay: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    width: 300,
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 10,
-  },
-  optionContainer: { flexDirection: "row", padding: 10, alignItems: "center" },
-  optionText: { fontSize: 16, marginLeft: 10 },
   mainContent: { flex: 1 },
   moneyInputContainer: { margin: 15 },
   moneyInputLabel: { fontSize: 16, color: "#333", textAlign: "right" },
@@ -389,7 +495,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     justifyContent: "space-between",
   },
-  transactionIcon: { width: 30, textAlign: "center" },
+  transactionIcon: { width: 30, textAlign: "center", marginRight: 8 },
   transactionContent: {
     flex: 1,
     flexDirection: "row",

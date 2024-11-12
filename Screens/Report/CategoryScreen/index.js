@@ -13,7 +13,7 @@ import {
 import { useDebounce } from "../../../hooks";
 import Icon from "../../../components/Icon";
 import UpdateCategory from "./UpdateCategory";
-import { renderCategoryItem } from "./categoryRender";
+import { renderCategoryItem } from "../../../components/categoryRender";
 import CreateCategory from "./CreateCategory";
 import {
   getCategorySpend,
@@ -41,11 +41,11 @@ const CategoryScreen = ({ onBack }) => {
     icon: "hamburger",
     iconLib: "FontAwesome5",
   });
+  const [expandedCategory, setExpandedCategory] = useState(null);
   const [categoriesThu, setCategoriesThu] = useState([]);
   const [categoriesChi, setCategoriesChi] = useState([]);
   const [originalCategories, setOriginalCategories] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [expandedCategory, setExpandedCategory] = useState(null);
   const [search, setSearch] = useState("");
   const debouncedValue = useDebounce(search, 500);
   const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);

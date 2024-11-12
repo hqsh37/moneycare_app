@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-import Icon from "../../../components/Icon";
+import Icon from "../Icon";
 
 export const renderCategoryItem = ({
   item,

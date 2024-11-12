@@ -51,8 +51,7 @@ const AddAccountScreen = ({ onPressClose }) => {
     setBalanceView((pre) => formatCurrency(pre));
   }, [debouncedValue]);
 
-  const parseCurrency = (value) =>
-    parseInt(value.replace(/\./g, "").replace("đ", "").trim());
+  const parseCurrency = (value) => parseInt(value.replace(/\./g, "").trim());
 
   const getRandomId = () => `account_${Math.floor(Math.random() * 9999999)}`;
 
