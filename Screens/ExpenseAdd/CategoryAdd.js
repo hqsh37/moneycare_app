@@ -75,7 +75,7 @@ const CategoryAdd = ({
           <Icon icon="arrow-back" iconLib="Ionicons" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Thêm hạng mục</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onBack}>
           <Icon icon="check" iconLib="AntDesign" size={24} color="#fff" />
         </TouchableOpacity>
       </View>

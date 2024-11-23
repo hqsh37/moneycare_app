@@ -27,6 +27,9 @@ export const getTimestamps = async () => {
       categoryAt: data.categoryAt || null,
       accountAt: data.accountAt || null,
       transactionAt: data.transactionAt || null,
+      email: data.email || null,
+      firstname: data.firstname || null,
+      lastname: data.lastname || null,
     };
   } catch (error) {
     console.error("Error retrieving timestamps:", error);

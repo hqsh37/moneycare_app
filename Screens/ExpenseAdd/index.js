@@ -22,6 +22,13 @@ import Icon from "../../components/Icon";
 import AccountAdd from "./AccountAdd";
 import Toast from "react-native-toast-message";
 import HistoryScreen from "./HistoryScreen";
+import {
+  getTransactionData,
+  saveTransactionData,
+} from "../../stores/transactionStorage";
+import { addHandleAsyncData } from "../../services/asyncData";
+import { checkNetworkStatus } from "../../services/asyncDataCloud";
+import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
 
 // Initialize the current time
 const currentDateTime = new Date();
@@ -50,6 +57,7 @@ export default function ExpenseAdd() {
     start: 0,
     end: 0,
   });
+  const getRandomId = () => `account_${Math.floor(Math.random() * 9999999)}`;
   // Visible toggle modal
   const [modalVisibleCate, setModalVisibleCate] = useState(false);
   const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
@@ -64,6 +72,26 @@ export default function ExpenseAdd() {
     const number = parseInt(value.replace(/[^0-9]/g, ""));
     return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
   };
+
+  // Reset trạng thái dữ liệu
+  const resetForm = useCallback(() => {
+    setAmount("");
+    setDesc("");
+    setSelectedCategory({
+      id: 0,
+      name: "Chọn hạng mục",
+      icon: "pricetag-outline",
+      iconLib: "Ionicons",
+    });
+    setSelectedAccount({
+      id: 0,
+      name: "Chọn tài khoản",
+      type: "cash",
+    });
+    setSelectedImage(null);
+    setDate(currentDateTime);
+    setTime(currentDateTime);
+  }, []);
 
   useEffect(() => {
     setAmount((pre) => formatCurrency(pre));
@@ -195,9 +223,42 @@ export default function ExpenseAdd() {
     return newDate;
   };
 
+  const prepareTransactionData = () => ({
+    id: getRandomId(),
+    amount: parseCurrency(amount),
+    date: `${getDateAndTime(addHours(date, 0)).date} ${
+      getDateAndTime(addHours(time, 0)).time
+    }`,
+    accountId: selectedAccount.id,
+    categoryId: selectedCategory.id,
+    image: selectedImage,
+    type: selectedOption === "Chi tiền" ? "chi" : "thu",
+    desc: desc,
+  });
+
+  const handleCreateLoading = async () => {
+    const transactionPrepare = prepareTransactionData();
+
+    try {
+      const dataOld = await getTransactionData();
+      await saveTransactionData([...dataOld, transactionPrepare]);
+      await addHandleAsyncData({
+        type: "create",
+        tbl: "transaction",
+        id: transactionPrepare.id,
+        data: transactionPrepare,
+      });
+      return true;
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      return false;
+    }
+  };
+
   // Handle Toast Message save
-  const handleSave = () => {
-    if (parseCurrency(amount) == 0) {
+  const handleSave = async () => {
+    // Kiểm tra dữ liệu hợp lệ
+    if (parseCurrency(amount) === 0) {
       Toast.show({
         type: "error",
         text1: "Vui lòng nhập số tiền lớn hơn 0",
@@ -205,7 +266,7 @@ export default function ExpenseAdd() {
       return;
     }
 
-    if (selectedCategory.id == 0) {
+    if (selectedCategory.id === 0) {
       Toast.show({
         type: "error",
         text1: "Vui lòng chọn hạng mục!",
@@ -213,7 +274,7 @@ export default function ExpenseAdd() {
       return;
     }
 
-    if (selectedAccount.id == 0) {
+    if (selectedAccount.id === 0) {
       Toast.show({
         type: "error",
         text1: "Vui lòng chọn tài khoản!",
@@ -221,13 +282,38 @@ export default function ExpenseAdd() {
       return;
     }
 
-    console.log(parseCurrency(amount));
-    console.log("Giờ: ", getDateAndTime(addHours(time, 0)).time);
-    console.log("Ngày: ", getDateAndTime(addHours(date, 0)).date);
-    console.log("id hạng mục: ", selectedCategory.id);
-    console.log("id tài khoản: ", selectedAccount.id);
-    console.log("hạng mục: ", desc);
-    console.log("image: ", selectedImage);
+    // Lưu dữ liệu
+    const result = await handleCreateLoading();
+
+    // Hiển thị thông báo và reset nếu thành công
+    if (result) {
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: "Giao dịch đã được thêm thành công",
+      });
+
+      setTimeout(() => {
+        asyncData();
+        resetForm();
+      }, 1500);
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Có lỗi xảy ra",
+        text2: "Vui lòng thử lại sau.",
+      });
+    }
+  };
+
+  const asyncData = async () => {
+    const isConnected = await checkNetworkStatus();
+    if (isConnected) {
+      console.log("Device is online");
+      await asyncDataCloud();
+    } else {
+      console.log("Device is offline");
+    }
   };
 
   return (
@@ -258,6 +344,7 @@ export default function ExpenseAdd() {
                 onFocus={handleFocus}
                 selection={selection}
                 color={selectedOption === "Chi tiền" ? "red" : "green"}
+                keyboardType="numeric"
               />
               <Text style={styles.moneyInputCurrency}>đ</Text>
             </View>

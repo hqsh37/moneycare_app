@@ -27,6 +27,5 @@ export const asyncDataCloud = async () => {
   } else {
     const info = await getInfo();
     await syncDataWithTimestamps(info);
-    console.log("Successfully completed async data action info", info);
   }
 };

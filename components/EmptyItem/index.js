@@ -18,9 +18,6 @@ const EmptyItem = ({ title, btnTitle, onPress = () => {} }) => (
         </ButtonAdd>
       </View>
     </View>
-    <TouchableOpacity style={styles.fab}>
-      <Ionicons name="add" size={30} color="#fff" />
-    </TouchableOpacity>
   </View>
 );
 
@@ -36,17 +33,6 @@ const styles = StyleSheet.create({
   },
   cusBtnEmpty: {
     borderColor: "transparent",
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
-    backgroundColor: "#009fda",
-    borderRadius: 50,
-    width: 60,
-    height: 60,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });
 

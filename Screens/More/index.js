@@ -11,7 +11,10 @@ import {
   getAllAsyncDataActions,
 } from "../../services/asyncData";
 import { asyncDataAction } from "../../services/asyncDataCloud";
-import { deleteCategorySpend } from "../../stores/categorySpend";
+import {
+  deleteCategorySpend,
+  getCategorySpend,
+} from "../../stores/categorySpend";
 import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
 import { getTimestamps } from "../../stores/Timestamp";
 import {
@@ -20,6 +23,12 @@ import {
 } from "../../services/category";
 import { getInfo } from "../../services/auth";
 import { deleteAccountData, getAccountData } from "../../stores/accountStorage";
+import { getTransactionData } from "../../stores/transactionStorage";
+import { getListTransactions } from "../../services/transaction";
+import { getCategoryCollect } from "../../stores/categoryCollect";
+
+import { convertDataTransaction } from "../ExpenseAdd/convertDataTransaction";
+import { getSavingsData } from "../../stores/savingStorage";
 
 export default function More() {
   const { logoutAuthContext } = useContext(AuthContext);
@@ -36,9 +45,52 @@ export default function More() {
     }
   };
 
+  function convertToYearMonthSummary(data) {
+    const yearMonthSummary = {};
+
+    data.forEach((item) => {
+      const amount = parseInt(item.amount, 10);
+      const [day, month, year] = item.date.split(" ")[0].split("/");
+      const type = item.type; // "thu" (collect) hoặc "chi" (spend)
+
+      // Khởi tạo dữ liệu nếu chưa có
+      if (!yearMonthSummary[year]) {
+        yearMonthSummary[year] = {};
+      }
+
+      if (!yearMonthSummary[year][month]) {
+        yearMonthSummary[year][month] = { sumSpend: 0, sumCollect: 0 };
+      }
+
+      // Cộng giá trị vào "sumSpend" hoặc "sumCollect" tùy theo loại
+      if (type === "chi") {
+        yearMonthSummary[year][month].sumSpend += amount;
+      } else if (type === "thu") {
+        yearMonthSummary[year][month].sumCollect += amount;
+      }
+    });
+
+    // Chuyển đổi dữ liệu sang định dạng mong muốn
+    const result = Object.keys(yearMonthSummary).map((year) => {
+      const monthlyData = Object.keys(yearMonthSummary[year])
+        .sort()
+        .map((month) => ({
+          month,
+          sumSpend: yearMonthSummary[year][month].sumSpend,
+          sumCollect: yearMonthSummary[year][month].sumCollect,
+        }));
+      return {
+        year,
+        data: monthlyData,
+      };
+    });
+
+    return result;
+  }
+
   const handleTest = () => {
     const testfunc = async () => {
-      const test = await getAllAsyncDataActions();
+      const test = await getSavingsData();
       if (test.length === 0) {
         setLog("empty test");
       } else {

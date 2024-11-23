@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingBottom: 5,
   },
   navHeader: {
     height: 40,

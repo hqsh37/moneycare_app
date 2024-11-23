@@ -1,9 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import Icon from "../../components/Icon"; // Sử dụng component Icon chung
-
 const HistoryChild = ({ data }) => {
   // Render mỗi mục giao dịch
+  const formatCurrency = (value) => {
+    const number = parseInt(value.replace(/[^0-9]/g, ""));
+    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
+  };
   const renderTransactionItem = ({ item }) => {
     return (
       <View style={styles.transactionItem}>
@@ -20,15 +23,20 @@ const HistoryChild = ({ data }) => {
 
         {/* Tên giao dịch và loại */}
         <View style={styles.transactionDetails}>
-          <Text style={styles.transactionName}>{item.name}</Text>
+          <Text style={styles.transactionName}>{item.categoryName}</Text>
           <Text style={styles.transactionType}>
-            {item.typeAccount === "cash" ? "Tiền mặt" : "Ngân hàng"}
+            {item.type === "cash" ? "Tiền mặt" : "Ngân hàng"}
           </Text>
         </View>
 
         {/* Số tiền giao dịch */}
-        <Text style={styles.transactionAmount}>
-          {item.amount.toLocaleString("vi-VN")} đ
+        <Text
+          style={[
+            styles.transactionAmount,
+            item.type == "thu" && { color: "green" },
+          ]}
+        >
+          {formatCurrency(item.amount)} đ
         </Text>
       </View>
     );

@@ -11,6 +11,10 @@ import { saveCategorySpend } from "../stores/categorySpend";
 import { saveCategoryCollect } from "../stores/categoryCollect";
 import { convertDataAccount, getListAccounts } from "./account";
 import { saveAccountData } from "../stores/accountStorage";
+import { convertDataTransactions, getListTransactions } from "./transaction";
+import { saveTransactionData } from "../stores/transactionStorage";
+import { convertDataSavings, getListSavings } from "./savings";
+import { saveSavingsData } from "../stores/savingStorage";
 
 export const asyncDataAction = async (actionList) => {
   try {
@@ -43,6 +47,8 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
       accountAt: newTimestamps.accountAt !== storedTimestamps.accountAt,
       transactionAt:
         newTimestamps.transactionAt !== storedTimestamps.transactionAt,
+
+      savingsAt: newTimestamps.savingsAt !== storedTimestamps.savingsAt,
     };
 
     // Step 3: Update local data based on which timestamps have changed
@@ -60,6 +66,7 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
 
       console.log("Updating category data...");
     }
+
     if (updates.accountAt) {
       const accounts = await getListAccounts();
       if (accounts) {
@@ -67,8 +74,23 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
       }
       console.log("Updating account data...");
     }
+
     if (updates.transactionAt) {
+      const transactions = await getListTransactions();
+
+      if (transactions) {
+        await saveTransactionData(convertDataTransactions(transactions));
+      }
       console.log("Updating transaction data...");
+    }
+
+    if (updates.savingsAt) {
+      const savings = await getListSavings();
+
+      if (savings) {
+        await saveSavingsData(convertDataSavings(savings));
+      }
+      console.log("Updating savings data...");
     }
 
     // Step 4: After successful updates, save the new timestamps

@@ -8,77 +8,238 @@ import {
   Dimensions,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import DateTimePicker from "@react-native-community/datetimepicker"; // Thư viện chọn ngày tháng
-import { LineChart } from "react-native-chart-kit"; // Thư viện biểu đồ
+import { LineChart } from "react-native-chart-kit";
+
+import FinancialReport from "./FinancialReport";
+import YearPicker from "../../../components/YearPicker";
+import { getTransactionData } from "../../../stores/transactionStorage";
 
 const screenWidth = Dimensions.get("window").width;
 
 const IncomeExpenseReport = ({ onBack }) => {
-  const [selectedTab, setSelectedTab] = useState("HIỆN TẠI"); // Quản lý tab được chọn
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Quản lý thời gian hiện tại
-  const [showPicker, setShowPicker] = useState(false); // Trạng thái hiển thị DateTimePicker
-  const [chartData, setChartData] = useState(null); // Quản lý dữ liệu biểu đồ
+  const [selectedTab, setSelectedTab] = useState("HIỆN TẠI");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedRange, setSelectedRange] = useState([
+    new Date().getFullYear() - 5,
+    new Date().getFullYear(),
+  ]);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [chartData, setChartData] = useState(null);
 
-  // Hàm áp cứng dữ liệu cho các tab
-  const fetchChartData = async (tab, date) => {
-    let labels = [];
-    let datasets = [];
-    let data = [];
+  const [currentData, setCurrentData] = useState([]);
+  const [monthData, setMonthData] = useState([]);
+  const [yearData, setYearData] = useState([]);
+  const [transactions, setTransactions] = useState(null);
 
-    if (tab === "HIỆN TẠI") {
-      labels = [`${date.getDate()}/${date.getMonth() + 1}`];
-      data = [20]; // Áp cứng dữ liệu cho ngày hiện tại (20 triệu)
-    } else if (tab === "THÁNG") {
-      labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]; // Các tháng
-      data = [50, 100, 150, 200, 250, 500, 700, 800, 900, 1000, 1100, 5000]; // Dữ liệu cố định theo từng tháng
-    } else if (tab === "NĂM") {
-      labels = [
-        "2015",
-        "2016",
-        "2017",
-        "2018",
-        "2019",
-        "2020",
-        "2021",
-        "2022",
-        "2023",
-        "2024",
-      ]; // 10 năm gần nhất
-      data = [500, 1000, 2000, 3000, 4000, 3500, 3000, 2500, 1500, 1000]; // Dữ liệu cố định theo từng năm
-    }
-
-    datasets = [
-      {
-        data: data,
-        color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // Màu đỏ cho dữ liệu
-        strokeWidth: 2, // Độ dày của đường biểu đồ
-      },
-    ];
-
-    setChartData({ labels, datasets });
-  };
-
-  // Gọi hàm lấy dữ liệu khi người dùng chọn tab hoặc thay đổi ngày tháng
   useEffect(() => {
-    fetchChartData(selectedTab, selectedDate);
-  }, [selectedTab, selectedDate]);
+    const fetchData = async () => {
+      const dataTransactions = await getTransactionData();
+      const dataConverted = convertToYearMonthSummary(dataTransactions);
+      setTransactions(dataConverted);
+    };
 
-  // Hàm để hiển thị DateTimePicker
-  const onShowPicker = () => {
-    setShowPicker(true);
-  };
+    fetchData();
+  }, []);
 
-  // Hàm xử lý khi chọn ngày tháng
-  const onChange = (event, date) => {
-    setShowPicker(false);
-    if (date) {
-      setSelectedDate(date); // Cập nhật ngày tháng được chọn
+  useEffect(() => {
+    if (transactions) {
+      handleSetData();
+    }
+  }, [selectedTab, selectedYear, selectedRange, transactions]);
+
+  const handleSetData = () => {
+    if (!transactions) return;
+
+    if (selectedTab === "HIỆN TẠI") {
+      const currentDataPrepare = prepareCurrentData(transactions);
+      setCurrentData(currentDataPrepare);
+
+      // Prepare chart data
+      setChartData({
+        labels: currentDataPrepare.map((item) => item.name),
+        datasets: [
+          {
+            data: currentDataPrepare.map((item) => item.sumSpend / 1000000),
+            color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
+            strokeWidth: 2,
+          },
+          {
+            data: currentDataPrepare.map((item) => item.sumCollect / 1000000),
+            color: (opacity = 1) => `rgba(0, 255, 0, ${opacity})`,
+            strokeWidth: 2,
+          },
+        ],
+      });
+    } else if (selectedTab === "THÁNG") {
+      const monthDataPrepare = [];
+
+      transactions.forEach(({ year, data }) => {
+        if (parseInt(year) === selectedYear) {
+          monthDataPrepare.push(
+            ...data.map(({ month, sumSpend, sumCollect }) => ({
+              name: `T${month}`, // Remove "Tháng" prefix
+              sumSpend,
+              sumCollect,
+            }))
+          );
+        }
+      });
+
+      setMonthData(monthDataPrepare);
+
+      setChartData({
+        labels: monthDataPrepare.map((item) => item.name),
+        datasets: [
+          {
+            data: monthDataPrepare.map((item) => item.sumSpend / 1000000),
+            color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
+            strokeWidth: 2,
+          },
+          {
+            data: monthDataPrepare.map((item) => item.sumCollect / 1000000),
+            color: (opacity = 1) => `rgba(0, 255, 0, ${opacity})`,
+            strokeWidth: 2,
+          },
+        ],
+      });
+    } else if (selectedTab === "NĂM") {
+      const yearDataPrepare = [];
+      const [yearFrom, yearTo] = selectedRange;
+
+      transactions.forEach(({ year, data }) => {
+        const yearInt = parseInt(year);
+        if (yearInt >= yearFrom && yearInt <= yearTo) {
+          const sumSpend = data.reduce(
+            (sum, { sumSpend }) => sum + sumSpend,
+            0
+          );
+          const sumCollect = data.reduce(
+            (sum, { sumCollect }) => sum + sumCollect,
+            0
+          );
+
+          yearDataPrepare.push({
+            name: `${year}`, // Remove any "Tháng" prefix
+            sumSpend,
+            sumCollect,
+          });
+        }
+      });
+
+      setYearData(yearDataPrepare);
+
+      setChartData({
+        labels: yearDataPrepare.map((item) => item.name),
+        datasets: [
+          {
+            data: yearDataPrepare.map((item) => item.sumSpend / 1000000),
+            color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
+            strokeWidth: 2,
+          },
+          {
+            data: yearDataPrepare.map((item) => item.sumCollect / 1000000),
+            color: (opacity = 1) => `rgba(0, 255, 0, ${opacity})`,
+            strokeWidth: 2,
+          },
+        ],
+      });
+    } else {
+      setChartData(null);
     }
   };
 
-  // Hàm render nội dung biểu đồ hoặc hiển thị thông báo nếu không có dữ liệu
+  function prepareCurrentData(transactions) {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // Months are 0-indexed
+    const currentQuarter = Math.floor((currentMonth - 1) / 3) + 1;
+
+    let monthData = { sumSpend: 0, sumCollect: 0 };
+    let quarterData = { sumSpend: 0, sumCollect: 0 };
+    let yearData = { sumSpend: 0, sumCollect: 0 };
+
+    transactions.forEach(({ year, data }) => {
+      if (parseInt(year) === currentYear) {
+        data.forEach(({ month, sumSpend, sumCollect }) => {
+          const monthInt = parseInt(month);
+
+          // Year data
+          yearData.sumSpend += sumSpend;
+          yearData.sumCollect += sumCollect;
+
+          // Quarter data
+          const monthQuarter = Math.floor((monthInt - 1) / 3) + 1;
+          if (monthQuarter === currentQuarter) {
+            quarterData.sumSpend += sumSpend;
+            quarterData.sumCollect += sumCollect;
+          }
+
+          // Month data
+          if (monthInt === currentMonth) {
+            monthData.sumSpend += sumSpend;
+            monthData.sumCollect += sumCollect;
+          }
+        });
+      }
+    });
+
+    return [
+      { name: "Tháng", ...monthData },
+      { name: "Quý", ...quarterData },
+      { name: "Năm", ...yearData },
+    ];
+  }
+
+  function convertToYearMonthSummary(data) {
+    const yearMonthSummary = {};
+
+    data.forEach((item) => {
+      const amount = parseInt(item.amount, 10);
+      const [day, month, year] = item.date.split(" ")[0].split("/");
+      const type = item.type; // "thu" (collect) hoặc "chi" (spend)
+
+      if (!yearMonthSummary[year]) {
+        yearMonthSummary[year] = {};
+      }
+
+      if (!yearMonthSummary[year][month]) {
+        yearMonthSummary[year][month] = { sumSpend: 0, sumCollect: 0 };
+      }
+
+      if (type === "chi") {
+        yearMonthSummary[year][month].sumSpend += amount;
+      } else if (type === "thu") {
+        yearMonthSummary[year][month].sumCollect += amount;
+      }
+    });
+
+    const result = Object.keys(yearMonthSummary).map((year) => {
+      const monthlyData = Object.keys(yearMonthSummary[year])
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map((month) => ({
+          month,
+          sumSpend: yearMonthSummary[year][month].sumSpend,
+          sumCollect: yearMonthSummary[year][month].sumCollect,
+        }));
+      return {
+        year,
+        data: monthlyData,
+      };
+    });
+
+    return result;
+  }
+
+  const handleYearSave = (yearOrRange) => {
+    if (selectedTab === "THÁNG") {
+      setSelectedYear(yearOrRange);
+    } else if (selectedTab === "NĂM") {
+      setSelectedRange(yearOrRange);
+    }
+    setShowYearPicker(false);
+  };
+
   const renderContent = () => {
-    if (!chartData) {
+    if (!chartData || chartData.labels.length === 0) {
       return (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>Chưa có dữ liệu</Text>
@@ -86,40 +247,20 @@ const IncomeExpenseReport = ({ onBack }) => {
       );
     }
 
-    // Trục Y cho từng tab
-    const yAxisValues =
-      selectedTab === "THÁNG"
-        ? ["0", "50M", "100M", "150M", "200M", "250M", "500M", "1B", "5B"]
-        : selectedTab === "NĂM"
-        ? ["0", "500M", "1B", "2B", "3B", "4B"]
-        : [
-            "0",
-            "10M",
-            "20M",
-            "30M",
-            "40M",
-            "50M",
-            "60M",
-            "70M",
-            "80M",
-            "90M",
-            "1B",
-          ];
-
     return (
       <View style={styles.chartContainer}>
         <Text style={styles.chartLabel}>(Đơn vị: Triệu)</Text>
         <LineChart
           data={chartData}
-          width={screenWidth - 40} // Chiều rộng biểu đồ
+          width={screenWidth - 40}
           height={220}
-          yAxisLabel=""
-          yAxisSuffix="M" // Đơn vị triệu cho trục tung
+          yAxisSuffix="M"
+          yAxisInterval={1}
           chartConfig={{
             backgroundColor: "#fff",
             backgroundGradientFrom: "#fff",
             backgroundGradientTo: "#fff",
-            decimalPlaces: 2, // Làm tròn số liệu
+            decimalPlaces: 2,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             style: {
@@ -130,16 +271,10 @@ const IncomeExpenseReport = ({ onBack }) => {
               strokeWidth: "2",
               stroke: "#ffa726",
             },
-            yLabelsOffset: 10, // Đẩy nhãn trục Y ra xa một chút
           }}
-          fromZero // Bắt đầu từ 0
+          fromZero
           verticalLabelRotation={30}
-          segments={yAxisValues.length - 1} // Số mốc trên trục Y
-          yLabels={yAxisValues} // Các mốc cứng trên trục Y
-          style={{
-            marginVertical: 8,
-            borderRadius: 16,
-          }}
+          segments={5}
         />
       </View>
     );
@@ -148,87 +283,66 @@ const IncomeExpenseReport = ({ onBack }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Thanh tiêu đề (Header) */}
+        {/* Thanh tiêu đề */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-            <Icon
-              name="arrow-back-outline"
-              size={24}
-              color="#fff"
-              onPress={onBack}
-            />
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Icon name="arrow-back-outline" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tình hình thu chi</Text>
-
-          {/* Nút chia sẻ */}
           <TouchableOpacity style={styles.shareButton}>
             <Icon name="share-social-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
-
-        {/* Tabs lựa chọn thời gian */}
+        {/* Tabs */}
         <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[
-              styles.tabItem,
-              selectedTab === "HIỆN TẠI" && styles.activeTab,
-            ]}
-            onPress={() => setSelectedTab("HIỆN TẠI")}
-          >
-            <Text style={styles.tabText}>HIỆN TẠI</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.tabItem,
-              selectedTab === "THÁNG" && styles.activeTab,
-            ]}
-            onPress={() => setSelectedTab("THÁNG")}
-          >
-            <Text style={styles.tabText}>THÁNG</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabItem, selectedTab === "NĂM" && styles.activeTab]}
-            onPress={() => setSelectedTab("NĂM")}
-          >
-            <Text style={styles.tabText}>NĂM</Text>
-          </TouchableOpacity>
+          {["HIỆN TẠI", "THÁNG", "NĂM"].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tabItem, selectedTab === tab && styles.activeTab]}
+              onPress={() => setSelectedTab(tab)}
+            >
+              <Text style={styles.tabText}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Hiển thị năm/tháng/ngày cho tab HIỆN TẠI */}
-        <View style={styles.dateContainer}>
-          <TouchableOpacity onPress={onShowPicker}>
-            <View style={styles.dateRow}>
-              <Icon name="calendar-outline" size={24} color="#A9A9A9" />
-              <Text style={styles.dateText}>
-                {selectedTab === "NĂM"
-                  ? selectedDate.getFullYear()
-                  : selectedTab === "THÁNG"
-                  ? `${
-                      selectedDate.getMonth() + 1
-                    }/${selectedDate.getFullYear()}`
-                  : `${selectedDate.getDate()}/${
-                      selectedDate.getMonth() + 1
-                    }/${selectedDate.getFullYear()}`}
-              </Text>
+        {/* Hiển thị năm (chỉ cho tab "THÁNG" và "NĂM") */}
+        {selectedTab !== "HIỆN TẠI" && (
+          <View style={styles.dateContainer}>
+            <TouchableOpacity onPress={() => setShowYearPicker(true)}>
+              <View style={styles.dateRow}>
+                <Icon name="calendar-outline" size={24} color="#A9A9A9" />
+                <Text style={styles.dateText}>
+                  {selectedTab === "THÁNG"
+                    ? `${selectedYear}`
+                    : `${selectedRange[0]} - ${selectedRange[1]}`}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
-              {/* Nút Cài đặt ngay cạnh ngày */}
-              <TouchableOpacity style={styles.settingsButton}>
-                <Icon name="settings-outline" size={24} color="#A9A9A9" />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Nội dung hiển thị dựa trên tab đã chọn */}
+        {/* Nội dung hiển thị */}
         {renderContent()}
 
-        {/* DateTimePicker */}
-        {showPicker && (
-          <DateTimePicker
-            value={selectedDate}
-            mode={selectedTab === "NĂM" ? "year" : "date"}
-            display="default"
-            onChange={onChange}
+        <FinancialReport
+          data={
+            selectedTab === "HIỆN TẠI"
+              ? currentData
+              : selectedTab === "THÁNG"
+              ? monthData
+              : yearData
+          }
+          tab={selectedTab}
+        />
+
+        {/* YearPicker */}
+        {selectedTab !== "HIỆN TẠI" && (
+          <YearPicker
+            isVisible={showYearPicker}
+            onClose={() => setShowYearPicker(false)}
+            onSave={handleYearSave}
+            mode={selectedTab === "THÁNG" ? "single" : "range"}
           />
         )}
       </View>
@@ -236,88 +350,39 @@ const IncomeExpenseReport = ({ onBack }) => {
   );
 };
 
-// Định nghĩa các style cho giao diện
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F0F8FF",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#F0F8FF",
-  },
+  safeArea: { flex: 1, width: "100%", backgroundColor: "#F0F8FF" },
+  container: { flex: 1, backgroundColor: "#F0F8FF" },
   header: {
-    backgroundColor: "#1E90FF",
-    padding: 15,
+    backgroundColor: "#009fda",
+    paddingHorizontal: 15,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  backButton: {
-    paddingLeft: 10,
-  },
-  shareButton: {
-    paddingRight: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-  },
+  backButton: { paddingLeft: 10 },
+  shareButton: { paddingRight: 10 },
+  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#fff" },
   tabs: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "#1E90FF",
-    paddingVertical: 10,
+    backgroundColor: "#009fda",
+    paddingTop: 10,
   },
-  tabItem: {
-    paddingHorizontal: 20,
-  },
-  tabText: {
-    fontSize: 16,
-    color: "#fff",
-  },
-  activeTab: {
-    borderBottomWidth: 3,
-    borderBottomColor: "#FFFFFF",
-  },
-  chartContainer: {
-    padding: 20,
-    backgroundColor: "#FFFFFF",
-  },
-  chartLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 5,
-  },
-  noDataContainer: {
-    height: 220,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F0F0F0",
-    borderRadius: 10,
-  },
-  noDataText: {
-    fontSize: 16,
-    color: "#A9A9A9",
-  },
+  tabItem: { paddingHorizontal: 20 },
+  tabText: { fontSize: 16, color: "#fff" },
+  activeTab: { borderBottomWidth: 3, borderBottomColor: "#FFFFFF" },
+  noDataContainer: { alignItems: "center", marginVertical: 20 },
+  noDataText: { fontSize: 16, fontWeight: "bold", color: "#000" },
+  chartContainer: { padding: 20, backgroundColor: "#FFFFFF" },
+  chartLabel: { fontSize: 14, color: "#666", marginBottom: 5 },
   dateContainer: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: "#FFF",
   },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dateText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
-    marginLeft: 10,
-    marginRight: 10,
-  },
+  dateRow: { flexDirection: "row", alignItems: "center" },
+  dateText: { fontSize: 18, fontWeight: "bold", color: "#000", marginLeft: 10 },
 });
 
 export default IncomeExpenseReport;

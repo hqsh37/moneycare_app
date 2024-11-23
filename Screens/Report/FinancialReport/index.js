@@ -1,9 +1,50 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "../../../components/Icon";
+import { getAccountData } from "../../../stores/accountStorage";
+import { getSavingsData } from "../../../stores/savingStorage";
 
 const FinancialReport = ({ onBack }) => {
+  const [sumCash, setSumCash] = useState(0);
+  const [savingsAmount, setSavingsAmount] = useState(0);
+
+  useEffect(() => {
+    const getdata = async () => {
+      const accountDatas = await getAccountData();
+      const savings = await getSavingsData();
+
+      if (accountDatas.length > 0) {
+        // Tính tổng số tiền chỉ một lần
+        const totalCash = accountDatas.reduce(
+          (sum, account) => sum + Number(account.amount),
+          0
+        );
+        setSumCash(totalCash);
+      } else {
+        setSumCash(0); // Đặt sumCash về 0 nếu không có dữ liệu
+      }
+
+      if (savings.length > 0) {
+        // Tính tổng số tiền chỉ một lần
+        const totalSavings = savings.reduce(
+          (sum, savings) => sum + Number(savings.amount),
+          0
+        );
+        setSavingsAmount(totalSavings);
+      } else {
+        setSavingsAmount(0); // Đặt sumCash về 0 nếu không có dữ liệu
+      }
+    };
+
+    getdata();
+  }, []);
+
+  const formatCurrency = (value) => {
+    const number = parseInt(value.replace(/[^0-9]/g, ""));
+    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -19,7 +60,9 @@ const FinancialReport = ({ onBack }) => {
       <View style={styles.financialOverview}>
         <View style={styles.overviewRow}>
           <Text style={styles.overviewLabel}>Tài chính hiện tại</Text>
-          <Text style={styles.overviewValue}>1.007.115.109 đ</Text>
+          <Text style={styles.overviewValue}>
+            {formatCurrency(sumCash + savingsAmount + "")} đ
+          </Text>
         </View>
       </View>
 
@@ -28,14 +71,16 @@ const FinancialReport = ({ onBack }) => {
         <View style={styles.assetItem}>
           <Ionicons name="wallet-outline" size={24} color="#FFA500" />
           <Text style={styles.assetText}>Tiền mặt</Text>
-          <Text style={styles.assetValue}>7.115.109 đ</Text>
+          <Text style={styles.assetValue}>{formatCurrency(sumCash + "")}</Text>
           <Ionicons name="chevron-forward-outline" size={24} color="#A9A9A9" />
         </View>
 
         <View style={styles.assetItem}>
           <Ionicons name="logo-alipay" size={24} color="#FF69B4" />
           <Text style={styles.assetText}>Tài khoản tiết kiệm</Text>
-          <Text style={styles.assetValue}>1.000.000 đ</Text>
+          <Text style={styles.assetValue}>
+            {formatCurrency(savingsAmount + "")} đ
+          </Text>
           <Ionicons name="chevron-forward-outline" size={24} color="#A9A9A9" />
         </View>
       </View>
@@ -50,7 +95,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   header: {
-    backgroundColor: "#1E90FF",
+    backgroundColor: "#009fda",
     padding: 15,
     flexDirection: "row",
     alignItems: "center",

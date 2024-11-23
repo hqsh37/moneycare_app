@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,139 +8,20 @@ import {
 } from "react-native";
 import Icon from "../../components/Icon";
 import HistoryChild from "./HistoryChild";
+import { convertDataTransaction } from "./convertDataTransaction";
 
-const fakeData = [
-  {
-    date: "10/11/2024",
-    transaction: [
-      {
-        amount: 8000,
-        icon: "fast-food-outline",
-        iconLib: "Ionicons",
-        name: "Ăn tiệm",
-        typeAccount: "cash",
-      },
-      {
-        amount: 90000,
-        icon: "hamburger",
-        iconLib: "FontAwesome5",
-        name: "Ăn uống",
-        typeAccount: "cash",
-      },
-    ],
-  },
-  {
-    date: "20/10/2024",
-    transaction: [
-      {
-        amount: 10000,
-        icon: "medkit",
-        iconLib: "Ionicons",
-        name: "Sức khỏe",
-        typeAccount: "cash",
-      },
-    ],
-  },
-  {
-    date: "11/10/2024",
-    transaction: [
-      {
-        amount: 1000000,
-        icon: "cart-outline",
-        iconLib: "Ionicons",
-        name: "Đi chợ/siêu thị",
-        typeAccount: "bank",
-      },
-    ],
-  },
-  {
-    date: "10/11/2024",
-    transaction: [
-      {
-        amount: 8000,
-        icon: "fast-food-outline",
-        iconLib: "Ionicons",
-        name: "Ăn tiệm",
-        typeAccount: "cash",
-      },
-      {
-        amount: 90000,
-        icon: "hamburger",
-        iconLib: "FontAwesome5",
-        name: "Ăn uống",
-        typeAccount: "cash",
-      },
-    ],
-  },
-  {
-    date: "20/10/2024",
-    transaction: [
-      {
-        amount: 10000,
-        icon: "medkit",
-        iconLib: "Ionicons",
-        name: "Sức khỏe",
-        typeAccount: "cash",
-      },
-    ],
-  },
-  {
-    date: "11/10/2024",
-    transaction: [
-      {
-        amount: 1000000,
-        icon: "cart-outline",
-        iconLib: "Ionicons",
-        name: "Đi chợ/siêu thị",
-        typeAccount: "bank",
-      },
-    ],
-  },
-  {
-    date: "10/11/2024",
-    transaction: [
-      {
-        amount: 8000,
-        icon: "fast-food-outline",
-        iconLib: "Ionicons",
-        name: "Ăn tiệm",
-        typeAccount: "cash",
-      },
-      {
-        amount: 90000,
-        icon: "hamburger",
-        iconLib: "FontAwesome5",
-        name: "Ăn uống",
-        typeAccount: "cash",
-      },
-    ],
-  },
-  {
-    date: "20/10/2024",
-    transaction: [
-      {
-        amount: 10000,
-        icon: "medkit",
-        iconLib: "Ionicons",
-        name: "Sức khỏe",
-        typeAccount: "cash",
-      },
-    ],
-  },
-  {
-    date: "11/10/2024",
-    transaction: [
-      {
-        amount: 1000000,
-        icon: "cart-outline",
-        iconLib: "Ionicons",
-        name: "Đi chợ/siêu thị",
-        typeAccount: "bank",
-      },
-    ],
-  },
-];
 function HistoryScreen({ onBack = () => {} }) {
+  const [viewDatas, setViewDatas] = useState([]);
+
+  useEffect(() => {
+    const testfunc = async () => {
+      const data = await convertDataTransaction();
+      setViewDatas(data);
+    };
+
+    testfunc();
+  }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       <View style={styles.header}>
@@ -153,7 +34,7 @@ function HistoryScreen({ onBack = () => {} }) {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={fakeData}
+        data={viewDatas}
         renderItem={({ item }) => <HistoryChild data={item} />}
         keyExtractor={(item, index) => index.toString()}
       />

@@ -1,17 +1,61 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
-import ButtonAdd from "../../components/ButtonAdd";
 import Feathericon from "react-native-vector-icons/Feather";
+
+import ButtonAdd from "../../components/ButtonAdd";
+import { getTimestamps } from "../../stores/Timestamp";
+import { getAccountData } from "../../stores/accountStorage";
+import { checkNetworkStatus } from "../../services/asyncDataCloud";
+import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
 
 const Home = () => {
   const [hideCash, setHidecash] = useState(false);
-  let cash = "1.000.000 đ";
+  const [name, setName] = useState("bạn");
+  const [sumCash, setSumCash] = useState(0);
+
+  useEffect(() => {
+    const getdata = async () => {
+      await asyncData();
+      const user = await getTimestamps();
+
+      const accountDatas = await getAccountData();
+
+      if (accountDatas.length > 0) {
+        // Tính tổng số tiền chỉ một lần
+        const totalCash = accountDatas.reduce(
+          (sum, account) => sum + Number(account.amount),
+          0
+        );
+        setSumCash(totalCash);
+        setName(user.lastname);
+      } else {
+        setSumCash(0); // Đặt sumCash về 0 nếu không có dữ liệu
+      }
+    };
+
+    getdata();
+  }, []);
+
+  const formatCurrency = (value) => {
+    const number = parseInt(value.replace(/[^0-9]/g, ""));
+    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
+  };
+
+  const asyncData = async () => {
+    const isConnected = await checkNetworkStatus();
+    if (isConnected) {
+      console.log("Device is online");
+      await asyncDataCloud();
+    } else {
+      console.log("Device is offline");
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.greeting}>Chào Mến Nguyễn!</Text>
+          <Text style={styles.greeting}>Chào {name}!</Text>
           <Feathericon name="bell" size={22} color={"#fff"} />
         </View>
         <View style={styles.balanceContainer}>
@@ -22,7 +66,9 @@ const Home = () => {
             size={20}
             onPress={() => setHidecash(!hideCash)}
           />
-          <Text style={styles.balanceAmount}>{hideCash ? "*****" : cash}</Text>
+          <Text style={styles.balanceAmount}>
+            {hideCash ? "*****" : formatCurrency(sumCash.toString()) + " đ"}
+          </Text>
         </View>
       </View>
 
