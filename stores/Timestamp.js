@@ -23,17 +23,24 @@ export const saveTimestamps = async (timestamps) => {
 export const getTimestamps = async () => {
   try {
     const data = (await getData(TIMESTAMP_FILE)) || {};
+
     return {
       categoryAt: data.categoryAt || null,
       accountAt: data.accountAt || null,
       transactionAt: data.transactionAt || null,
+      savingsAt: data.savingsAt || null,
       email: data.email || null,
       firstname: data.firstname || null,
       lastname: data.lastname || null,
     };
   } catch (error) {
     console.error("Error retrieving timestamps:", error);
-    return { categoryAt: null, accountAt: null, transactionAt: null };
+    return {
+      categoryAt: null,
+      accountAt: null,
+      transactionAt: null,
+      savingsAt: null,
+    };
   }
 };
 

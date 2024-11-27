@@ -9,6 +9,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import AntDesign from "react-native-vector-icons/AntDesign";
 import EvilIcons from "react-native-vector-icons/EvilIcons";
 import Feather from "react-native-vector-icons/Feather";
+import Fontisto from "react-native-vector-icons/Fontisto";
 
 function Icon({
   icon,
@@ -57,6 +58,8 @@ function Icon({
         return (
           <EvilIcons name={icon} size={size} color={color} style={style} />
         );
+      case "Fontisto":
+        return <Fontisto name={icon} size={size} color={color} style={style} />;
       default:
         return null; // Trả về null nếu thư viện biểu tượng không được hỗ trợ
     }

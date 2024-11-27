@@ -1,13 +1,21 @@
 import React from "react";
 import { TouchableOpacity } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5"; // Icon for piggy bank
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import Icon from "../../../components/Icon";
 
-const SubSavingsItem = ({ date, name, amount, onPress = () => {} }) => {
+const SubSavingsItem = ({
+  date,
+  name,
+  amount,
+  status = "active",
+  onPress = () => {},
+}) => {
   return (
     <TouchableOpacity onPress={onPress}>
-      <View style={styles.savingsItem}>
+      <View
+        style={[styles.savingsItem, status === "closing" && { opacity: 0.6 }]}
+      >
         {/* Piggy bank icon */}
         <View style={styles.savingsIcon}>
           <FontAwesome5 name="piggy-bank" size={24} color="#FFA500" />
@@ -23,7 +31,23 @@ const SubSavingsItem = ({ date, name, amount, onPress = () => {} }) => {
         <Text style={styles.savingsDate}>{date}</Text>
 
         {/* More options icon */}
-        <MaterialIcons name="more-vert" size={24} color="gray" />
+        {status === "active" ? (
+          <Icon
+            style={{ marginLeft: 8 }}
+            iconLib="Ionicons"
+            icon="wallet-outline"
+            size={22}
+            color="green"
+          />
+        ) : (
+          <Icon
+            style={{ marginLeft: 8 }}
+            iconLib="Ionicons"
+            icon="checkmark-done-outline"
+            size={22}
+            color="gray"
+          />
+        )}
       </View>
     </TouchableOpacity>
   );

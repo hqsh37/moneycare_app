@@ -13,14 +13,9 @@ import CategoryScreen from "./CategoryScreen";
 import FinancialReport from "./FinancialReport";
 import ExpenseAnalysis from "./ExpenseAnalysis";
 import IncomeExpenseReport from "./IncomeExpenseReport";
+import IncomeAnalysis from "./IncomeAnalysis";
 
 // Các component trang (đảm bảo đây là function components);
-
-const IncomeAnalysis = () => (
-  <View>
-    <Text style={styles.pageText}>Phân tích thu</Text>
-  </View>
-);
 
 const FinancialAnalysis = () => (
   <View>

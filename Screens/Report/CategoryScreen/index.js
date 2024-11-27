@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 15,
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
   },
   headerTitle: { fontSize: 18, color: "#fff" },
   tabs: {

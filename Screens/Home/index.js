@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Dimensions } from "react-native";
 import Feathericon from "react-native-vector-icons/Feather";
 
 import ButtonAdd from "../../components/ButtonAdd";
@@ -7,38 +7,102 @@ import { getTimestamps } from "../../stores/Timestamp";
 import { getAccountData } from "../../stores/accountStorage";
 import { checkNetworkStatus } from "../../services/asyncDataCloud";
 import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
+import { BarChart, PieChart } from "react-native-chart-kit";
+import { getTransactionData } from "../../stores/transactionStorage";
+import Loading from "../../components/Loading";
+import DonutChartAuto from "../../components/DonutChartAuto";
+import { getSavingsData } from "../../stores/savingStorage";
+import Icon from "../../components/Icon";
 
 const Home = () => {
   const [hideCash, setHidecash] = useState(false);
   const [name, setName] = useState("bạn");
   const [sumCash, setSumCash] = useState(0);
+  const [dataChart, setDataChart] = useState([0, 0]);
+  const [dataDonut, setDataDonut] = useState([{ label: "Trống", value: 1 }]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const getdata = async () => {
-      await asyncData();
-      const user = await getTimestamps();
-
-      const accountDatas = await getAccountData();
-
-      if (accountDatas.length > 0) {
-        // Tính tổng số tiền chỉ một lần
-        const totalCash = accountDatas.reduce(
-          (sum, account) => sum + Number(account.amount),
-          0
-        );
-        setSumCash(totalCash);
-        setName(user.lastname);
-      } else {
-        setSumCash(0); // Đặt sumCash về 0 nếu không có dữ liệu
-      }
-    };
-
     getdata();
   }, []);
 
-  const formatCurrency = (value) => {
-    const number = parseInt(value.replace(/[^0-9]/g, ""));
-    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
+  const getdata = async () => {
+    setIsLoading(true);
+    await asyncData();
+    const user = await getTimestamps();
+
+    const accountDatas = await getAccountData();
+    const savingDatas = await getSavingsData();
+
+    if (accountDatas.length > 0) {
+      // Tính tổng số tiền chỉ một lần
+      const totalCash = accountDatas.reduce(
+        (sum, account) => sum + Number(account.amount),
+        0
+      );
+      setSumCash(totalCash);
+      setName(user.lastname);
+    } else {
+      setSumCash(0); // Đặt sumCash về 0 nếu không có dữ liệu
+    }
+
+    const transactionDatas = await getTransactionData();
+
+    if (transactionDatas.length > 0) {
+      let sumSpend = 0;
+      let sumIncome = 0;
+
+      const currentDate = new Date(); // Ngày hiện tại
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+
+      transactionDatas.forEach((transaction) => {
+        const transactionDate = new Date(
+          transaction.date.split(" ")[0].split("/").reverse().join("-")
+        );
+        // Tính tổng cho tháng hiện tại
+        if (
+          transactionDate.getMonth() === currentMonth &&
+          transactionDate.getFullYear() === currentYear
+        ) {
+          if (transaction.type == "chi") {
+            sumSpend += Number(transaction.amount);
+          } else if (transaction.type == "thu") {
+            sumIncome += Number(transaction.amount);
+          }
+        }
+      });
+
+      if (savingDatas.length > 0) {
+        // Tính tổng số tiền chỉ một lần
+        const totalCashSving = savingDatas.reduce(
+          (sum, account) => sum + Number(account.amount),
+          0
+        );
+        setDataDonut([
+          { label: "Tiền mặt", value: sumCash },
+          { label: "Tiết kiệm", value: totalCashSving },
+        ]);
+      } else {
+        setDataDonut([
+          { label: "Tiền mặt", value: sumCash },
+          { label: "Tiết kiệm", value: 0 },
+        ]);
+      }
+
+      // Cập nhật dữ liệu biểu đồ
+      setDataChart([sumSpend, sumIncome]);
+    } else {
+      setDataChart([0, 0]);
+    }
+    setIsLoading(false);
+  };
+
+  const formatCurrencyVND = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
   };
 
   const asyncData = async () => {
@@ -52,11 +116,17 @@ const Home = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} nestedScrollEnabled={true}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.greeting}>Chào {name}!</Text>
-          <Feathericon name="bell" size={22} color={"#fff"} />
+          <Icon
+            iconLib="MaterialCommunityIcons"
+            icon="sync"
+            size={22}
+            color={"#fff"}
+            onPress={() => getdata()}
+          />
         </View>
         <View style={styles.balanceContainer}>
           <Text style={styles.balanceTitle}>Tổng số dư</Text>
@@ -67,38 +137,73 @@ const Home = () => {
             onPress={() => setHidecash(!hideCash)}
           />
           <Text style={styles.balanceAmount}>
-            {hideCash ? "*****" : formatCurrency(sumCash.toString()) + " đ"}
+            {hideCash ? "*****" : formatCurrencyVND(sumCash.toString())}
           </Text>
         </View>
       </View>
 
       <View style={styles.subBlock}>
-        <Text style={styles.sectionTitle}>Hạn mức chi</Text>
-        <View style={styles.cusNoDataText}>
-          <Text style={styles.noDataText}>
-            Cùng MoneyCare lập ra các hạn mức chi để quản lý chi tiêu tốt hơn
-            nhé.
-          </Text>
-        </View>
-        <View style={styles.cusButton}>
-          <ButtonAdd outline small width={150}>
-            Thêm hạn mức
-          </ButtonAdd>
-        </View>
-      </View>
+        <Text style={styles.sectionTitle}>Thu chi tháng này</Text>
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <View style={styles.chartView}>
+            <BarChart
+              data={{
+                labels: ["Chi", "Thu"],
+                datasets: [
+                  {
+                    data: dataChart.map((i) => i / 1000000),
+                  },
+                ],
+              }}
+              width={Dimensions.get("window").width / 2} // Chiều rộng biểu đồ
+              height={220} // Chiều cao biểu đồ
+              yAxisSuffix="tr" // Hậu tố trục Y
+              fromZero={true} // Bắt đầu trục Y từ 0
+              yAxisInterval={1} // Khoảng cách giữa các giá trị trên trục Y
+              chartConfig={{
+                backgroundGradientFrom: "#f0f8ff", // Nền xanh dương nhạt
+                backgroundGradientTo: "#f0f8ff",
+                color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`, // Màu cột
+                labelColor: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`, // Màu chữ nhãn
+              }}
+              style={{
+                marginVertical: 8,
+              }}
+            />
 
+            <View style={styles.detailAnalysis}>
+              <Text style={styles.amountSpend}>
+                {formatCurrencyVND(dataChart[0] + "")}
+              </Text>
+              <Text style={styles.amountIncome}>
+                {formatCurrencyVND(dataChart[1] + "")}
+              </Text>
+              <Text style={styles.sumAmount}>
+                {formatCurrencyVND(dataChart[0] - dataChart[1] + "")}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
       <View style={styles.subBlock}>
-        <Text style={styles.sectionTitle}>Du lịch</Text>
-        <View style={styles.cusNoDataText}>
-          <Text style={styles.noDataText}>
-            Hãy tạo chuyến đi cùng MoneyCare
-          </Text>
-        </View>
-        <View style={styles.cusButton}>
-          <ButtonAdd outline small width={150}>
-            Thêm mới
-          </ButtonAdd>
-        </View>
+        <Text style={styles.sectionTitle}>Tài chính hiện tại</Text>
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <View
+            style={[
+              styles.chartView,
+              {
+                justifyContent: "center",
+                alignItems: "center",
+              },
+            ]}
+          >
+            <DonutChartAuto data={dataDonut} />
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -116,8 +221,38 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   subBlock: {
-    borderBottomColor: "#e6e6e6",
-    borderBottomWidth: 8,
+    backgroundColor: "#f0f8ff",
+    margin: 8,
+    minHeight: 280,
+  },
+  chartView: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+  detailAnalysis: {
+    flexDirection: "column",
+    alignItems: "flex-end",
+    marginRight: 25,
+    marginBottom: 30,
+  },
+  amountSpend: {
+    fontSize: 18,
+    color: "red",
+    marginBottom: 4,
+  },
+  amountIncome: {
+    fontSize: 18,
+    color: "green",
+  },
+  sumAmount: {
+    fontSize: 18,
+    color: "#000",
+    fontWeight: "bold",
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#d3d3d3",
+    paddingTop: 4,
   },
   headerTop: {
     flexDirection: "row",
@@ -129,11 +264,6 @@ const styles = StyleSheet.create({
     color: "#D9ECF2",
     fontSize: 13,
     fontWeight: "700",
-  },
-  battery: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
   },
   greeting: {
     justifyContent: "center",
@@ -166,43 +296,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: "black",
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: "600",
     marginLeft: 16,
     marginTop: 16,
-  },
-  subtitle: {
-    color: "#D9D9D9",
-    fontSize: 13,
-    fontWeight: "600",
-    marginLeft: 16,
-    marginTop: 8,
-  },
-  noDataText: {
-    color: "#D9D9D9",
-    fontSize: 10,
-    fontWeight: "600",
-    marginLeft: 16,
-    marginTop: 8,
-    maxWidth: "70%",
-    textAlign: "center",
-  },
-  cusNoDataText: {
-    alignItems: "center",
-  },
-  addText: {
-    color: "#56CAE3",
-    fontSize: 13,
-    fontWeight: "600",
-    marginLeft: 16,
-    marginTop: 8,
-    textAlign: "right",
-  },
-  cusButton: {
-    display: "flex",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 15,
   },
 });
 

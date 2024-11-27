@@ -254,12 +254,12 @@ const IncomeExpenseReport = ({ onBack }) => {
           data={chartData}
           width={screenWidth - 40}
           height={220}
-          yAxisSuffix="M"
+          yAxisSuffix="tr"
           yAxisInterval={1}
           chartConfig={{
-            backgroundColor: "#fff",
-            backgroundGradientFrom: "#fff",
-            backgroundGradientTo: "#fff",
+            backgroundColor: "#f0f8ff",
+            backgroundGradientFrom: "#f0f8ff",
+            backgroundGradientTo: "#f0f8ff",
             decimalPlaces: 2,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,

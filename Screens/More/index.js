@@ -16,7 +16,7 @@ import {
   getCategorySpend,
 } from "../../stores/categorySpend";
 import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
-import { getTimestamps } from "../../stores/Timestamp";
+import { deleteTimestamps, getTimestamps } from "../../stores/Timestamp";
 import {
   getListCategory,
   getListCategoryDefault,
@@ -90,7 +90,7 @@ export default function More() {
 
   const handleTest = () => {
     const testfunc = async () => {
-      const test = await getSavingsData();
+      const test = await getTimestamps();
       if (test.length === 0) {
         setLog("empty test");
       } else {
@@ -146,7 +146,7 @@ export default function More() {
       <Button title="get Account" onPress={() => hanldeGetAccounts()} />
       <Button title="test" onPress={() => handleTest()} />
       <Button title="test async" onPress={() => asyncDataCloud()} />
-      <Button title="remove data" onPress={() => deleteAccountData()} />
+      <Button title="remove data" onPress={() => deleteTimestamps()} />
       <Button title="remove action" onPress={() => deleteAsyncDataActions()} />
       <ScrollView style={{ flex: 1 }}>
         <Text selectable={true}>Log: {log}</Text>

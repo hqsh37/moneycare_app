@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     padding: 15,
   },
   headerTitle: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     borderRadius: 5,
     padding: 10,
     flex: 1,

@@ -58,6 +58,7 @@ export const convertDataTransaction = async () => {
         ...transaction,
         accountName: account ? account.name : "Không xác định",
         categoryName: category ? category.name : "Không xác định",
+        typeAccount: account ? account.type : "cash",
         icon: category ? category.icon : "question",
         iconLib: category ? category.iconLib : "FontAwesome5",
       };

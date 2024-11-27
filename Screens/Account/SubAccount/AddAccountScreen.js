@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     paddingVertical: 10,
     paddingHorizontal: 15,
   },
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   saveButton: {
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     paddingVertical: 15,
     alignItems: "center",
     borderRadius: 5,

@@ -17,7 +17,7 @@ const Account = () => {
 
   const tabData = [
     { name: "Tài Khoản", component: <SubAccount textSearch={textSearch} /> },
-    { name: "Sổ Tiết Kiệm", component: <Savings /> },
+    { name: "Sổ Tiết Kiệm", component: <Savings textSearch={textSearch} /> },
   ];
 
   return (
@@ -26,7 +26,12 @@ const Account = () => {
         <View style={styles.ctrlHeader}>
           {isSearch ? (
             <View style={styles.inputGroup}>
-              <TouchableOpacity onPress={() => setIsSearch(false)}>
+              <TouchableOpacity
+                onPress={() => {
+                  setIsSearch(false);
+                  setTextSearch("");
+                }}
+              >
                 <Icon
                   style={styles.icon}
                   icon="arrow-left"
@@ -55,7 +60,7 @@ const Account = () => {
                 />
               </TouchableOpacity>
               <Text style={styles.textTile}>Tài khoản</Text>
-              <Text style={styles.moreOptions}>...</Text>
+              <Text style={styles.moreOptions}>{"     "} </Text>
             </View>
           )}
         </View>
@@ -64,7 +69,11 @@ const Account = () => {
           {tabData.map((tab, index) => (
             <TouchableOpacity
               key={tab.name}
-              onPress={() => setSelectedIndex(index)}
+              onPress={() => {
+                setSelectedIndex(index);
+                setIsSearch(false);
+                setTextSearch("");
+              }}
               style={styles.tab}
             >
               <Text

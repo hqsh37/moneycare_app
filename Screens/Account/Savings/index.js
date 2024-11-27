@@ -8,26 +8,36 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useEffect, useState } from "react";
-import EmptyItem from "../../../components/EmptyItem";
-import AddSavingScreen from "./AddSavingScreen";
-import Icon from "../../../components/Icon";
-import SubSavingsItem from "./SubSavingsItem";
-import ConfirmationModal from "../../../components/ConfirmationModal";
+import { default as ModalNew } from "react-native-modal";
 import Toast from "react-native-toast-message";
-import { useDebounce } from "../../../hooks";
+
 import { checkNetworkStatus } from "../../../services/asyncDataCloud";
 import { asyncDataCloud } from "../../../handlers/dataAsyncHandle";
-import { getSavingsData } from "../../../stores/savingStorage";
+import { getSavingsData, saveSavingsData } from "../../../stores/savingStorage";
+import { useDebounce } from "../../../hooks";
+import ConfirmationModal from "../../../components/ConfirmationModal";
+import EmptyItem from "../../../components/EmptyItem";
+import Icon from "../../../components/Icon";
 import Loading from "../../../components/Loading";
+import SubSavingsItem from "./SubSavingsItem";
+import AddSavingScreen from "./AddSavingScreen";
+import ActionMenu from "./ActionMenu";
+import UpdateSavingScreen from "./UpdateSavingScreen";
+import { addHandleAsyncData } from "../../../services/asyncData";
+import DetailSavingScreen from "./DetailSavingScreen";
 
 const Savings = ({ textSearch = "" }) => {
   const [savings, setSavings] = useState([]);
   const [filteredSavings, setFilteredSavings] = useState([]);
   const [totalSavings, setTotalSavings] = useState(0);
   const [modalVisibleCreate, setModalVisibleCreate] = useState(false);
+  const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
+  const [modalVisibleDetail, setModalVisibleDetail] = useState(false);
   const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
+  const [modalVisibleClosings, setModalVisibleClosings] = useState(false);
+  const [isAcctionMenu, setAcctionMenu] = useState(false);
   const [selectedSaving, setSelectedSaving] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const debouncedValue = useDebounce(textSearch, 500);
 
@@ -58,7 +68,7 @@ const Savings = ({ textSearch = "" }) => {
   };
 
   const filterSavings = () => {
-    const lowerSearch = removeVietnameseTones(debouncedValue.toLowerCase());
+    const lowerSearch = removeVietnameseTones(debouncedValue);
     const filtered = savings.filter((saving) =>
       removeVietnameseTones(saving.name.toLowerCase()).includes(lowerSearch)
     );
@@ -66,12 +76,17 @@ const Savings = ({ textSearch = "" }) => {
   };
 
   const removeVietnameseTones = (str) => {
-    return str
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "D")
-      .trim();
+    if (str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .trim();
+    } else {
+      return "";
+    }
   };
 
   const formatCurrencyVND = (amount) => {
@@ -85,14 +100,128 @@ const Savings = ({ textSearch = "" }) => {
     fetchSavings();
   };
 
+  const handleDataRemove = async (dataOld, accountId) => {
+    const index = dataOld.findIndex((item) => item.id === accountId);
+    if (index !== -1) {
+      dataOld.splice(index, 1);
+    }
+    return dataOld;
+  };
+
+  const handleRemoving = async (savingsId) => {
+    try {
+      await addHandleAsyncData({
+        type: "delete",
+        tbl: "savings",
+        id: savingsId,
+      });
+
+      const dataOld = await getSavingsData();
+
+      const storageData = await saveSavingsData(
+        handleDataRemove(dataOld, savingsId)
+      );
+
+      return storageData;
+    } catch (error) {
+      console.error("Error creating account:", error);
+      return false;
+    }
+  };
+
   const handleRemoveSaving = async () => {
+    try {
+      const success = await handleRemoving(selectedSaving.id);
+      if (success) {
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Tài khoản đã xoá thành công!",
+        });
+        onRefresh();
+
+        // Cập nhật danh sách tài khoản
+        const updateSavings = savings.filter(
+          (saving) => saving.id !== selectedSaving.id
+        );
+        setSavings(updateSavings);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Xoá thất bại, vui lòng thử lại!",
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Đã xảy ra lỗi khi xóa tài khoản. Vui lòng thử lại!",
+      });
+    }
     setModalVisibleRemove(false);
-    setSavings((prev) => prev.filter((item) => item.id !== selectedSaving.id));
-    Toast.show({
-      type: "success",
-      text1: "Thành công",
-      text2: "Sổ tiết kiệm đã xoá thành công!",
-    });
+  };
+
+  const handleDataUpdate = (dataOld, savingsPrepare) =>
+    dataOld.map((cat) =>
+      cat.id === savingsPrepare.id ? { ...cat, ...savingsPrepare } : cat
+    );
+
+  const handleclosing = async (savingsId) => {
+    const savingsPrepare = {
+      id: savingsId,
+      status: "closing",
+    };
+
+    try {
+      const dataOld = await getSavingsData();
+      const updatedData = await saveSavingsData(
+        handleDataUpdate(dataOld, savingsPrepare)
+      );
+      await addHandleAsyncData({
+        type: "update",
+        tbl: "savings",
+        id: savingsPrepare.id,
+        data: savingsPrepare,
+      });
+      return updatedData;
+    } catch (error) {
+      console.error("Error creating account:", error);
+      return false;
+    }
+  };
+
+  const handleClosingSaving = async () => {
+    try {
+      const success = await handleclosing(selectedSaving.id);
+      if (success) {
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Tài khoản đã xoá thành công!",
+        });
+        onRefresh();
+
+        // Cập nhật danh sách tài khoản
+        const updateSavings = savings.filter(
+          (saving) => saving.id !== selectedSaving.id
+        );
+        setSavings(updateSavings);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Xoá thất bại, vui lòng thử lại!",
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Đã xảy ra lỗi khi xóa tài khoản. Vui lòng thử lại!",
+      });
+    }
+    setModalVisibleClosings(false);
   };
 
   const asyncData = async () => {
@@ -131,6 +260,24 @@ const Savings = ({ textSearch = "" }) => {
     return `${newDay}/${newMonth}/${newYear}`;
   }
 
+  const handleClosing = () => {
+    setAcctionMenu(false);
+    setModalVisibleClosings(true);
+  };
+
+  const handleRemove = () => {
+    setAcctionMenu(false);
+    setModalVisibleRemove(true);
+  };
+  const handleUpdate = () => {
+    setAcctionMenu(false);
+    setModalVisibleUpdate(true);
+  };
+
+  const handleDetail = () => {
+    setAcctionMenu(false);
+    setModalVisibleDetail(true);
+  };
   return (
     <View style={styles.wrapper}>
       {savings.length === 0 || isLoading ? (
@@ -163,11 +310,12 @@ const Savings = ({ textSearch = "" }) => {
               renderItem={({ item }) => (
                 <SubSavingsItem
                   name={item.name}
+                  status={item.status}
                   amount={formatCurrencyVND(item.amount)}
                   date={addMonthsToDate(item.date, Number(item.term))}
                   onPress={() => {
                     setSelectedSaving(item);
-                    setModalVisibleRemove(true);
+                    setAcctionMenu(true);
                   }}
                 />
               )}
@@ -184,6 +332,8 @@ const Savings = ({ textSearch = "" }) => {
         <Icon iconLib="Ionicons" icon="add" size={30} color="#fff" />
       </TouchableOpacity>
 
+      <Toast />
+
       {/* Add Savings Modal */}
       <Modal
         animationType="slide"
@@ -199,11 +349,74 @@ const Savings = ({ textSearch = "" }) => {
         />
       </Modal>
 
+      {/* Modal tongle menu action */}
+      <ModalNew
+        isVisible={isAcctionMenu}
+        style={styles.modal}
+        onBackdropPress={() => setAcctionMenu(false)}
+      >
+        <ActionMenu
+          onClosing={handleClosing}
+          onUpdate={handleUpdate}
+          onRemove={handleRemove}
+          onDetail={handleDetail}
+          view={
+            selectedSaving && selectedSaving.status === "closing"
+              ? "less"
+              : "full"
+          }
+        />
+      </ModalNew>
+
+      {/* Update Savings Modal */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleUpdate}
+        onRequestClose={() => setModalVisibleUpdate(false)}
+      >
+        <UpdateSavingScreen
+          onPressClose={() => {
+            setModalVisibleUpdate(false);
+            onRefresh();
+          }}
+          data={selectedSaving}
+        />
+      </Modal>
+
+      {/* Detail Savings Modal */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleDetail}
+        onRequestClose={() => setModalVisibleDetail(false)}
+      >
+        <DetailSavingScreen
+          onPressClose={() => {
+            setModalVisibleDetail(false);
+          }}
+          data={selectedSaving}
+        />
+      </Modal>
+
       {/* Remove Confirmation Modal */}
       <ConfirmationModal
         isVisible={modalVisibleRemove}
         toggleModal={() => setModalVisibleRemove(false)}
         onConfirm={handleRemoveSaving}
+        content={`Bạn có chắc muốn xóa sổ tiết kiệm ${
+          selectedSaving ? '"' + selectedSaving.name + '"' : "này"
+        } ?`}
+      />
+
+      {/* Closings Confirmation Modal */}
+      <ConfirmationModal
+        isVisible={modalVisibleClosings}
+        toggleModal={() => setModalVisibleClosings(false)}
+        onConfirm={handleClosingSaving}
+        content={`Bạn có chắc muốn tất toán sổ tiết kiệm ${
+          selectedSaving ? '"' + selectedSaving.name + '"' : "này"
+        } ?`}
       />
     </View>
   );
@@ -239,6 +452,10 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modal: {
+    justifyContent: "flex-end",
+    margin: 0,
   },
 });
 

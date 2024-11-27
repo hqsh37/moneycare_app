@@ -18,10 +18,9 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import SelectOptions from "../../../components/SelectOptions";
 import { addHandleAsyncData } from "../../../services/asyncData";
 import { useDebounce } from "../../../hooks";
-import Icon from "../../../components/Icon";
-import AccountAdd from "../../ExpenseAdd/AccountAdd";
 import CustomToast from "../../../components/CustomToast";
 import { getSavingsData, saveSavingsData } from "../../../stores/savingStorage";
+import { parse } from "date-fns";
 
 const accounts = [
   {
@@ -33,27 +32,22 @@ const accounts = [
     type: "bank",
   },
 ];
-
-const AddSavingScreen = ({ onPressClose }) => {
-  const [balanceView, setBalanceView] = useState("");
-  const [accountName, setAccountName] = useState("");
+const UpdateSavingScreen = ({ data = {}, onPressClose = () => {} }) => {
+  const [balanceView, setBalanceView] = useState(data.amount);
+  const [accountName, setAccountName] = useState(data.name);
   const debouncedValue = useDebounce(balanceView, 500);
   const inputRef = useRef(null);
   const [selection, setSelection] = useState({
     start: 0,
     end: 0,
   });
-  const [depositDate, setDepositDate] = useState(new Date());
+  const [depositDate, setDepositDate] = useState(
+    parse(data.date, "dd/MM/yyyy", new Date())
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [term, setTerm] = useState("");
-  const [interestRate, setInterestRate] = useState("");
-  const [interestType, setInterestType] = useState("don");
-  const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState({
-    id: 0,
-    name: "Chọn tài khoản",
-    type: "cash",
-  });
+  const [term, setTerm] = useState(data.term);
+  const [interestRate, setInterestRate] = useState(data.interestRate);
+  const [interestType, setInterestType] = useState(data.interestType);
 
   const formatCurrency = (value) => {
     const number = parseInt(value.replace(/[^0-9]/g, ""));
@@ -65,14 +59,6 @@ const AddSavingScreen = ({ onPressClose }) => {
   }, [debouncedValue]);
 
   const parseCurrency = (value) => parseInt(value.replace(/\./g, "").trim());
-
-  const getRandomId = () => `savings_${Math.floor(Math.random() * 9999999)}`;
-
-  // Function to handle account selection
-  const handleAccountSelect = (account) => {
-    setSelectedAccount(account);
-    setModalVisibleAcc(false); // Close the modal after selection
-  };
 
   function addMonths(date, months) {
     const result = new Date(date);
@@ -109,19 +95,15 @@ const AddSavingScreen = ({ onPressClose }) => {
     };
   }
 
-  // Số dư ban đầu (initialBalance)
-  // Tên sổ tiết kiệm (accountName)
-  // Ngày gửi (depositDate)
-  // Kỳ hạn (term)
-  // Lãi suất (interestRate)
-  // Loại lãi suất (interestType)
-  // Số tiền tất toán (settlementAmount): Hệ thống tự động tính dựa trên số dư ban đầu, lãi suất và kỳ hạn.
-  // Trạng thái (status): Hệ thống tự động cập nhật dựa trên ngày đáo hạn và các giao dịch của người dùng.
+  const handleDataUpdate = (dataOld, savingsPrepare) =>
+    dataOld.map((cat) =>
+      cat.id === savingsPrepare.id ? { ...cat, ...savingsPrepare } : cat
+    );
 
   const handleCreateLoading = async (interestResult) => {
     const savingsPrepare = {
-      id: getRandomId(),
-      accountId: selectedAccount.id,
+      id: data.id,
+      accountId: data.accountId,
       amount: parseCurrency(balanceView),
       name: accountName,
       date: getDAte(depositDate),
@@ -134,9 +116,11 @@ const AddSavingScreen = ({ onPressClose }) => {
 
     try {
       const dataOld = await getSavingsData();
-      const updatedData = await saveSavingsData([...dataOld, savingsPrepare]);
+      const updatedData = await saveSavingsData(
+        handleDataUpdate(dataOld, savingsPrepare)
+      );
       await addHandleAsyncData({
-        type: "create",
+        type: "update",
         tbl: "savings",
         id: savingsPrepare.id,
         data: savingsPrepare,
@@ -178,11 +162,6 @@ const AddSavingScreen = ({ onPressClose }) => {
 
     if (!accountName.trim()) {
       showErrorToast("Vui lòng nhập tên tài khoản");
-      return;
-    }
-
-    if (selectedAccount.id == 0) {
-      showErrorToast("Vui lòng chọn tài khoản");
       return;
     }
 
@@ -233,7 +212,7 @@ const AddSavingScreen = ({ onPressClose }) => {
       Toast.show({
         type: "custom_success",
         position: "top",
-        text1: "Thêm thành công!",
+        text1: "Sửa thành công!",
         text2: `<strong>Tài khoản</strong>: ${accountName}\n<strong>Tổng số tiền</strong>: ${formatCurrency(
           interestResult + ""
         )} đ\n<strong>Ngày tất toán</strong>: ${datePrepare}`,
@@ -277,7 +256,7 @@ const AddSavingScreen = ({ onPressClose }) => {
           color="#fff"
           onPress={onPressClose}
         />
-        <Text style={styles.headerTitle}>Thêm sổ tiết kiệm</Text>
+        <Text style={styles.headerTitle}>Sửa sổ tiết kiệm</Text>
         <Ionicons
           name="checkmark"
           size={24}
@@ -320,37 +299,6 @@ const AddSavingScreen = ({ onPressClose }) => {
               value={accountName}
               onChangeText={setAccountName}
             />
-          </View>
-
-          {/* Tài khoản */}
-          <View style={styles.inputGroup}>
-            <Text>
-              Tài khoản <Text style={styles.required}>*</Text>
-            </Text>
-            <TouchableOpacity
-              style={styles.accountSelection}
-              onPress={() => setModalVisibleAcc(true)}
-            >
-              <View style={styles.accountInfo}>
-                {selectedAccount.type === "cash" ? (
-                  <Icon
-                    iconLib="Ionicons"
-                    icon="cash-outline"
-                    size={24}
-                    color="#333"
-                  />
-                ) : (
-                  <Icon
-                    iconLib="FontAwesome"
-                    name="bank"
-                    size={24}
-                    color="#333"
-                  />
-                )}
-                <Text style={styles.accountName}>{selectedAccount.name}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#aaa" />
-            </TouchableOpacity>
           </View>
 
           {/* Ngày gửi */}
@@ -428,22 +376,6 @@ const AddSavingScreen = ({ onPressClose }) => {
           </TouchableOpacity>
         </ScrollView>
       </Pressable>
-
-      {/* Modal Accounts */}
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={modalVisibleAcc}
-        onRequestClose={() => setModalVisibleAcc(false)}
-      >
-        <AccountAdd
-          onBack={() => {
-            setModalVisibleAcc(false);
-          }}
-          selectedAccount={selectedAccount}
-          handleAccountSelect={handleAccountSelect}
-        />
-      </Modal>
 
       <Toast config={toastConfig} />
     </View>
@@ -558,4 +490,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddSavingScreen;
+export default UpdateSavingScreen;

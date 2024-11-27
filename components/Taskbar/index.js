@@ -14,16 +14,16 @@ const Tab = createBottomTabNavigator();
 
 const Taskbar = () => {
   const navigations = [
-    { name: "Home", component: Home, icon: "home-outline" },
-    { name: "Account", component: Account, icon: "person-outline" },
+    { name: "Trang chủ", component: Home, icon: "home-outline" },
+    { name: "Tài khoản", component: Account, icon: "person-outline" },
     {
       name: "ExpenseAdd",
       component: ExpenseAdd,
       icon: "add-circle",
       isPlusIcon: true,
     },
-    { name: "Report", component: Report, icon: "bar-chart-outline" },
-    { name: "More", component: More, icon: "menu-outline" },
+    { name: "Báo cáo", component: Report, icon: "bar-chart-outline" },
+    { name: "Thêm", component: More, icon: "menu-outline" },
   ];
 
   // Tạo useRef cho từng tab để giữ giá trị scale riêng biệt

@@ -10,7 +10,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LineChart } from "react-native-chart-kit";
 
-const ExpenseAnalysis = ({ onBack }) => {
+const IncomeAnalysis = ({ onBack }) => {
   const [selectedTab, setSelectedTab] = useState("NGÀY");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -105,8 +105,8 @@ const ExpenseAnalysis = ({ onBack }) => {
             yAxisSuffix="k" // Hậu tố cho trục Y
             chartConfig={{
               backgroundColor: "#f0f8ff",
-              backgroundGradientFrom: "#f0f8ff",
-              backgroundGradientTo: "#f0f8ff",
+              backgroundGradientFrom: "#f0f8ff", // Gradient từ màu xanh dương nhạt
+              backgroundGradientTo: "#f0f8ff", // Gradient đến màu xanh dương nhạt
               decimalPlaces: 0, // Không hiển thị số thập phân
               color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`, // Đường xanh dương nhạt
               labelColor: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`, // Màu trục
@@ -270,4 +270,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExpenseAnalysis;
+export default IncomeAnalysis;

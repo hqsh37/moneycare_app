@@ -16,7 +16,6 @@ import Toast from "react-native-toast-message";
 
 import ActionMenu from "./ActionMenu";
 import SubAccountItem from "../../../components/SubAcountItem";
-import { getListAccounts, removeAaccount } from "../../../services/account";
 import EmptyItem from "../../../components/EmptyItem";
 import AddAccountScreen from "./AddAccountScreen";
 import UpdateAccountScreen from "./UpdateAccountScreen";
@@ -30,6 +29,7 @@ import { checkNetworkStatus } from "../../../services/asyncDataCloud";
 import { asyncDataCloud } from "../../../handlers/dataAsyncHandle";
 import { addHandleAsyncData } from "../../../services/asyncData";
 import { useDebounce } from "../../../hooks";
+import DetailAccountScreen from "./DetailAccountScreen";
 
 const SubAccount = ({ textSearch = "" }) => {
   const [accounts, setAccounts] = useState([]);
@@ -37,6 +37,7 @@ const SubAccount = ({ textSearch = "" }) => {
   const [sumCash, setSumCash] = useState(0);
   const [modalVisibleCreate, setModalVisibleCreate] = useState(false);
   const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
+  const [modalVisibleDetail, setModalVisibleDetail] = useState(false);
   const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
   const [isAcctionMenu, setAcctionMenu] = useState(false);
   const [acctionAccount, setAcctionAccount] = useState({});
@@ -80,19 +81,24 @@ const SubAccount = ({ textSearch = "" }) => {
       const accountNameNoTones = removeVietnameseTones(
         account.name.toLowerCase()
       );
-      const searchNoTones = removeVietnameseTones(debouncedValue.toLowerCase());
+      const searchNoTones = removeVietnameseTones(debouncedValue);
       return accountNameNoTones.includes(searchNoTones);
     });
     setAccountViews(filteredAccounts);
   }, [debouncedValue]);
 
   const removeVietnameseTones = (str) => {
-    return str
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "D")
-      .trim();
+    if (str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .trim();
+    } else {
+      return "";
+    }
   };
 
   const getIconByType = (type) => {
@@ -199,9 +205,10 @@ const SubAccount = ({ textSearch = "" }) => {
     setAcctionMenu(false);
   };
 
-  // Update Account
+  // Detail Account
   const handleDetailAccount = () => {
     setAcctionMenu(!isAcctionMenu);
+    setModalVisibleDetail(true);
   };
 
   // Hàm này được gọi khi người dùng vuốt xuống để làm mới
@@ -319,6 +326,25 @@ const SubAccount = ({ textSearch = "" }) => {
               id={acctionAccount.id}
               type={acctionAccount.type}
               descOld={acctionAccount.desc}
+            />
+          </Modal>
+
+          {/* Modal Detail */}
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={modalVisibleDetail}
+            onRequestClose={() => setModalVisibleDetail(false)}
+          >
+            <DetailAccountScreen
+              onBack={() => {
+                setModalVisibleDetail(false);
+                setAcctionMenu(false);
+                setReload(!reload);
+              }}
+              id={acctionAccount.id}
+              type={acctionAccount.type}
+              name={acctionAccount.name}
             />
           </Modal>
 

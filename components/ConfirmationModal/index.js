@@ -3,7 +3,12 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Modal from "react-native-modal";
 
-const ConfirmationModal = ({ isVisible, toggleModal, onConfirm }) => {
+const ConfirmationModal = ({
+  isVisible,
+  toggleModal,
+  onConfirm,
+  content = "Bạn có chắc chắn muốn thực hiện hành động này?",
+}) => {
   return (
     <Modal
       isVisible={isVisible}
@@ -12,9 +17,7 @@ const ConfirmationModal = ({ isVisible, toggleModal, onConfirm }) => {
       animationOut="zoomOut"
     >
       <View style={styles.modalContent}>
-        <Text style={styles.modalText}>
-          Bạn có chắc chắn muốn thực hiện hành động này?
-        </Text>
+        <Text style={styles.modalText}>{content}</Text>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.noButton} onPress={toggleModal}>
@@ -56,7 +59,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   yesButton: {
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     padding: 10,
     borderRadius: 5,
     flex: 1,

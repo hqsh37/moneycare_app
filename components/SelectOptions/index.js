@@ -205,15 +205,15 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
   },
   checkboxSelected: {
     width: 16,
     height: 16,
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
   },
   modalButton: {
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     padding: 12,
     borderRadius: 8,
     marginTop: 10,
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   closeModalButton: {
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009fda",
     padding: 12,
     borderRadius: 8,
     marginTop: 20,

@@ -7,7 +7,7 @@ import {
   FlatList,
 } from "react-native";
 import Icon from "../../components/Icon";
-import HistoryChild from "./HistoryChild";
+import HistoryChild from "../../components/HistoryChild";
 import { convertDataTransaction } from "./convertDataTransaction";
 
 function HistoryScreen({ onBack = () => {} }) {
@@ -29,9 +29,7 @@ function HistoryScreen({ onBack = () => {} }) {
           <Icon icon="arrow-back" iconLib="Ionicons" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lịch sử ghi</Text>
-        <TouchableOpacity>
-          <Icon icon="search" iconLib="Ionicons" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View></View>
       </View>
       <FlatList
         data={viewDatas}
@@ -51,7 +49,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#00aaff",
+    backgroundColor: "#009FDA",
     paddingVertical: 10,
     paddingHorizontal: 15,
   },
