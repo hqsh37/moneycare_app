@@ -7,7 +7,7 @@ import {
   FlatList,
 } from "react-native";
 import Icon from "../../../components/Icon";
-import HistoryChild from "../../../components/HistoryChild";
+import HistoryChild from "../../ExpenseAdd/HistoryChild";
 import { convertDataTransaction } from "./convertDataTransaction";
 
 function DetailAccountScreen({

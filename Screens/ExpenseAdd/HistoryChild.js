@@ -1,7 +1,17 @@
-import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import Icon from "../../components/Icon"; // Sử dụng component Icon chung
-const HistoryChild = ({ data }) => {
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Modal,
+} from "react-native";
+import Icon from "../../components/Icon";
+import UpdateTransactionScreen from "./UpdateTransactionScreen";
+const HistoryChild = ({ data, selectedItem = () => {} }) => {
+  const [selectedTransaction, setSelectedTransaction] = useState({});
+  const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
   // Render mỗi mục giao dịch
 
   const formatCurrencyVND = (amount) => {
@@ -10,9 +20,16 @@ const HistoryChild = ({ data }) => {
       currency: "VND",
     }).format(amount);
   };
+
   const renderTransactionItem = ({ item }) => {
     return (
-      <View style={styles.transactionItem}>
+      <TouchableOpacity
+        style={styles.transactionItem}
+        onPress={() => {
+          setSelectedTransaction(item);
+          setModalVisibleUpdate(true);
+        }}
+      >
         {/* Icon giao dịch */}
         <View style={styles.iconContainer}>
           <Icon
@@ -40,7 +57,7 @@ const HistoryChild = ({ data }) => {
         >
           {formatCurrencyVND(item.amount)}
         </Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -57,6 +74,18 @@ const HistoryChild = ({ data }) => {
         renderItem={renderTransactionItem}
         keyExtractor={(item, index) => index.toString()}
       />
+
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleUpdate}
+        onRequestClose={() => setModalVisibleUpdate(false)}
+      >
+        <UpdateTransactionScreen
+          onPressClose={() => setModalVisibleUpdate(false)}
+          data={selectedTransaction}
+        />
+      </Modal>
     </View>
   );
 };

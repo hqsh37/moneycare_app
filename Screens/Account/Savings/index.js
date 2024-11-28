@@ -25,6 +25,7 @@ import ActionMenu from "./ActionMenu";
 import UpdateSavingScreen from "./UpdateSavingScreen";
 import { addHandleAsyncData } from "../../../services/asyncData";
 import DetailSavingScreen from "./DetailSavingScreen";
+import { updateAmountById } from "../../../stores/accountStorage";
 
 const Savings = ({ textSearch = "" }) => {
   const [savings, setSavings] = useState([]);
@@ -116,6 +117,24 @@ const Savings = ({ textSearch = "" }) => {
         id: savingsId,
       });
 
+      if (selectedSaving.status === "active") {
+        await updateAmountById(
+          selectedSaving.accountId,
+          selectedSaving.amount,
+          "plus"
+        );
+
+        await addHandleAsyncData({
+          type: "update",
+          tbl: "amount",
+          id: selectedSaving.accountId,
+          data: {
+            id: selectedSaving.accountId,
+            amount: selectedSaving.amount,
+          },
+        });
+      }
+
       const dataOld = await getSavingsData();
 
       const storageData = await saveSavingsData(
@@ -184,6 +203,23 @@ const Savings = ({ textSearch = "" }) => {
         id: savingsPrepare.id,
         data: savingsPrepare,
       });
+
+      await updateAmountById(
+        selectedSaving.accountId,
+        selectedSaving.settlementAmount,
+        "plus"
+      );
+
+      await addHandleAsyncData({
+        type: "update",
+        tbl: "amount",
+        id: selectedSaving.accountId,
+        data: {
+          id: selectedSaving.accountId,
+          amount: selectedSaving.settlementAmount,
+        },
+      });
+
       return updatedData;
     } catch (error) {
       console.error("Error creating account:", error);
@@ -198,7 +234,7 @@ const Savings = ({ textSearch = "" }) => {
         Toast.show({
           type: "success",
           text1: "Thành công",
-          text2: "Tài khoản đã xoá thành công!",
+          text2: "Tài khoản đã tất toán thành công!",
         });
         onRefresh();
 
@@ -211,14 +247,14 @@ const Savings = ({ textSearch = "" }) => {
         Toast.show({
           type: "error",
           text1: "Lỗi",
-          text2: "Xoá thất bại, vui lòng thử lại!",
+          text2: "Tất toán thất bại, vui lòng thử lại!",
         });
       }
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Lỗi",
-        text2: "Đã xảy ra lỗi khi xóa tài khoản. Vui lòng thử lại!",
+        text2: "Đã xảy ra lỗi khi tất toán tài khoản. Vui lòng thử lại!",
       });
     }
     setModalVisibleClosings(false);

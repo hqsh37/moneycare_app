@@ -40,6 +40,24 @@ const Home = () => {
         (sum, account) => sum + Number(account.amount),
         0
       );
+
+      if (savingDatas.length > 0) {
+        // Tính tổng số tiền chỉ một lần
+        const totalCashSving = savingDatas.reduce(
+          (sum, account) => sum + Number(account.amount),
+          0
+        );
+        setDataDonut([
+          { label: "Tiền mặt", value: totalCash },
+          { label: "Tiết kiệm", value: totalCashSving },
+        ]);
+      } else {
+        setDataDonut([
+          { label: "Tiền mặt", value: totalCash },
+          { label: "Tiết kiệm", value: 0 },
+        ]);
+      }
+
       setSumCash(totalCash);
       setName(user.lastname);
     } else {
@@ -72,23 +90,6 @@ const Home = () => {
           }
         }
       });
-
-      if (savingDatas.length > 0) {
-        // Tính tổng số tiền chỉ một lần
-        const totalCashSving = savingDatas.reduce(
-          (sum, account) => sum + Number(account.amount),
-          0
-        );
-        setDataDonut([
-          { label: "Tiền mặt", value: sumCash },
-          { label: "Tiết kiệm", value: totalCashSving },
-        ]);
-      } else {
-        setDataDonut([
-          { label: "Tiền mặt", value: sumCash },
-          { label: "Tiết kiệm", value: 0 },
-        ]);
-      }
 
       // Cập nhật dữ liệu biểu đồ
       setDataChart([sumSpend, sumIncome]);

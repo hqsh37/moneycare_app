@@ -75,9 +75,7 @@ function UpdateCategory({
     };
 
     loadData();
-  }, [tab, item]); // Thêm phụ thuộc `tab` và `item`
-
-  console.log(item);
+  }, [tab, item]);
 
   const findParentCategory = (item, categories) => {
     for (let category of categories) {
@@ -218,8 +216,6 @@ function UpdateCategory({
     });
   };
 
-  console.log(item);
-
   // Hàm xử lý lưu danh mục
   const handleSave = () => {
     const categoryPrepare = {
@@ -233,13 +229,9 @@ function UpdateCategory({
       categoryPrepare.id = item.ReplaceId;
     }
 
-    console.log(categoryPrepare);
-
     if (categoryDesc) {
       categoryPrepare.desc = categoryDesc;
     }
-
-    console.log(categoryPrepare);
 
     if (categoryName === "") {
       Toast.show({
@@ -286,10 +278,6 @@ function UpdateCategory({
       name: categoryName,
       ...categoryIcon,
     };
-
-    // if (item?.ReplaceId) {
-    //   categoryPrepare.ReplaceId = item.ReplaceId;
-    // }
 
     if (categoryParent.id === 0) {
       handleAsyncData({

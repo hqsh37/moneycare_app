@@ -32,14 +32,13 @@ const ActionMenu = ({
             <Ionicons name="pencil-outline" size={24} color="fff" />
             <Text style={styles.menuText}>Sửa</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={onRemove}>
-            <Ionicons name="trash-outline" size={24} color="fff" />
-            <Text style={styles.menuText}>Xóa</Text>
-          </TouchableOpacity>
         </>
       )}
 
+      <TouchableOpacity style={styles.menuItem} onPress={onRemove}>
+        <Ionicons name="trash-outline" size={24} color="fff" />
+        <Text style={styles.menuText}>Xóa</Text>
+      </TouchableOpacity>
       <TouchableOpacity style={styles.menuItem} onPress={onDetail}>
         <Ionicons name="information-outline" size={24} color="fff" />
         <Text style={styles.menuText}>Xem chi tiết</Text>

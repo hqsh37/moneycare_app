@@ -15,44 +15,46 @@ import { FontAwesome, Ionicons, AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useDebounce } from "../../hooks";
 
-import OptionModal from "./OptionModal";
 import CategoryAdd from "./CategoryAdd";
-import HeaderExpense from "./HeaderExpense";
 import Icon from "../../components/Icon";
-import AccountAdd from "./AccountAdd";
 import Toast from "react-native-toast-message";
-import HistoryScreen from "./HistoryScreen";
 import {
   getTransactionData,
   saveTransactionData,
 } from "../../stores/transactionStorage";
 import { addHandleAsyncData } from "../../services/asyncData";
-import { checkNetworkStatus } from "../../services/asyncDataCloud";
-import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
 import { updateAmountById } from "../../stores/accountStorage";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 // Initialize the current time
 const currentDateTime = new Date();
 
-export default function ExpenseAdd() {
+function UpdateTransactionScreen({ data = {}, onPressClose = () => {} }) {
+  const convertToDate = (dateString) => {
+    // Tách ngày, giờ từ chuỗi
+    const [datePart, timePart] = dateString.split(" ");
+    const [day, month, year] = datePart.split("/").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+
+    // Tạo đối tượng Date (lưu ý: tháng bắt đầu từ 0)
+    return new Date(year, month - 1, day, hours, minutes);
+  };
+
   const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("Chi tiền");
-  const [amount, setAmount] = useState("");
-  const [desc, setDesc] = useState("");
-  const [date, setDate] = useState(currentDateTime);
-  const [time, setTime] = useState(currentDateTime);
+  const [selectedOption, setSelectedOption] = useState(
+    data.type === "chi" ? "Chi tiền" : "Thu tiền"
+  );
+  const [amount, setAmount] = useState(data.amount);
+  const [desc, setDesc] = useState(data.desc);
+  const [date, setDate] = useState(convertToDate(data.date));
+  const [time, setTime] = useState(convertToDate(data.date));
   const [selectedImage, setSelectedImage] = useState(null);
   const debouncedValue = useDebounce(amount, 500);
   const [selectedCategory, setSelectedCategory] = useState({
-    id: 0,
-    name: "Chọn hạng mục",
-    icon: "pricetag-outline",
-    iconLib: "Ionicons",
-  });
-  const [selectedAccount, setSelectedAccount] = useState({
-    id: 0,
-    name: "Chọn tài khoản",
-    type: "cash",
+    id: data.categoryId,
+    name: data.categoryName,
+    icon: data.icon,
+    iconLib: data.iconLib,
   });
   const [selection, setSelection] = useState({
     start: 0,
@@ -61,8 +63,7 @@ export default function ExpenseAdd() {
   const getRandomId = () => `account_${Math.floor(Math.random() * 9999999)}`;
   // Visible toggle modal
   const [modalVisibleCate, setModalVisibleCate] = useState(false);
-  const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
-  const [modalVisibleHistory, setModalVisibleHistory] = useState(false);
+  const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
 
   // Trạng thái điều khiển DateTimePicker Modal
   const [showPicker, setShowPicker] = useState(false);
@@ -70,36 +71,20 @@ export default function ExpenseAdd() {
 
   // handle change amount
   const formatCurrency = (value) => {
-    const number = parseInt(value.replace(/[^0-9]/g, ""));
-    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
+    if (value) {
+      const number = parseInt(value.replace(/[^0-9]/g, ""));
+      return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
+    } else {
+      return "0";
+    }
   };
-
-  // Reset trạng thái dữ liệu
-  const resetForm = useCallback(() => {
-    setAmount("");
-    setDesc("");
-    setSelectedCategory({
-      id: 0,
-      name: "Chọn hạng mục",
-      icon: "pricetag-outline",
-      iconLib: "Ionicons",
-    });
-    setSelectedAccount({
-      id: 0,
-      name: "Chọn tài khoản",
-      type: "cash",
-    });
-    setSelectedImage(null);
-    setDate(currentDateTime);
-    setTime(currentDateTime);
-  }, []);
 
   useEffect(() => {
     setAmount((pre) => formatCurrency(pre));
   }, [debouncedValue]);
 
   const parseCurrency = (value) =>
-    parseInt(value.replace(/\./g, "").replace("đ", "").trim());
+    value ? parseInt(value.replace(/\./g, "").replace("đ", "").trim()) : "0";
 
   // Dữ liệu tùy chọn (Chi tiền, Thu tiền)
   const options = [
@@ -111,23 +96,6 @@ export default function ExpenseAdd() {
     },
     { key: "2", label: "Thu tiền", icon: "add-circle-outline", color: "green" },
   ];
-
-  // Hàm chuyển đổi trạng thái Modal tùy chọn
-  const toggleModal = useCallback(
-    () => setModalVisible(!isModalVisible),
-    [isModalVisible]
-  );
-
-  const selectOption = useCallback((option) => {
-    setSelectedOption(option.label);
-    setModalVisible(false);
-    setSelectedCategory({
-      id: 0,
-      name: "Chọn hạng mục",
-      icon: "pricetag-outline",
-      iconLib: "Ionicons",
-    });
-  }, []);
 
   // Hàm hiển thị DateTimePicker với mode ngày hoặc giờ
   const showMode = (mode) => {
@@ -150,11 +118,6 @@ export default function ExpenseAdd() {
   // func handle categories
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-  };
-
-  // func handle account
-  const handleAccountSelect = (account) => {
-    setSelectedAccount(account);
   };
 
   // Hàm chọn ảnh từ thư viện hoặc camera
@@ -225,47 +188,52 @@ export default function ExpenseAdd() {
   };
 
   const prepareTransactionData = () => ({
-    id: getRandomId(),
+    id: data.id,
     amount: parseCurrency(amount),
     date: `${getDateAndTime(addHours(date, 0)).date} ${
       getDateAndTime(addHours(time, 0)).time
     }`,
-    accountId: selectedAccount.id,
+    accountId: data.accountId,
     categoryId: selectedCategory.id,
     image: selectedImage,
     type: selectedOption === "Chi tiền" ? "chi" : "thu",
     desc: desc,
   });
 
+  const handleDataUpdate = (dataOld, accountPrepare) =>
+    dataOld.map((cat) =>
+      cat.id === accountPrepare.id ? { ...cat, ...accountPrepare } : cat
+    );
+
   const handleCreateLoading = async () => {
     const transactionPrepare = prepareTransactionData();
 
     try {
       const dataOld = await getTransactionData();
-      await saveTransactionData([...dataOld, transactionPrepare]);
+      await saveTransactionData(handleDataUpdate(dataOld, transactionPrepare));
       await addHandleAsyncData({
-        type: "create",
+        type: "update",
         tbl: "transaction",
         id: transactionPrepare.id,
         data: transactionPrepare,
       });
-      await addHandleAsyncData({
-        type: "update",
-        tbl: "amount",
-        id: transactionPrepare.accountId,
-        data: {
-          id: transactionPrepare.accountId,
-          amount:
-            transactionPrepare.type == "chi"
-              ? "-" + transactionPrepare.amount
-              : transactionPrepare.amount,
-        },
-      });
-      await updateAmountById(
-        transactionPrepare.accountId,
-        transactionPrepare.amount,
-        transactionPrepare.type == "chi" ? "minus" : "plus"
-      );
+      if (data.amount - transactionPrepare.amount !== 0) {
+        await addHandleAsyncData({
+          type: "update",
+          tbl: "amount",
+          id: data.accountId,
+          data: {
+            id: data.accountId,
+            amount: data.amount - transactionPrepare.amount,
+          },
+        });
+
+        await updateAmountById(
+          data.accountId,
+          data.amount - transactionPrepare.amount,
+          "plus"
+        );
+      }
       return true;
     } catch (error) {
       console.error("Error creating transaction:", error);
@@ -292,14 +260,6 @@ export default function ExpenseAdd() {
       return;
     }
 
-    if (selectedAccount.id === 0) {
-      Toast.show({
-        type: "error",
-        text1: "Vui lòng chọn tài khoản!",
-      });
-      return;
-    }
-
     // Lưu dữ liệu
     const result = await handleCreateLoading();
 
@@ -312,8 +272,7 @@ export default function ExpenseAdd() {
       });
 
       setTimeout(() => {
-        asyncData();
-        resetForm();
+        onPressClose();
       }, 1500);
     } else {
       Toast.show({
@@ -324,31 +283,82 @@ export default function ExpenseAdd() {
     }
   };
 
-  const asyncData = async () => {
-    const isConnected = await checkNetworkStatus();
-    if (isConnected) {
-      console.log("Device is online");
-      await asyncDataCloud();
-    } else {
-      console.log("Device is offline");
+  const handleDataRemove = async (dataOld, transactionId) => {
+    const index = dataOld.findIndex((item) => item.id === transactionId);
+    if (index !== -1) {
+      dataOld.splice(index, 1);
+    }
+    return dataOld;
+  };
+
+  const handleRemoving = async (transactionId) => {
+    try {
+      await addHandleAsyncData({
+        type: "delete",
+        tbl: "transaction",
+        id: transactionId,
+      });
+
+      const dataOld = await getTransactionData();
+
+      const storageData = await saveTransactionData(
+        handleDataRemove(dataOld, transactionId)
+      );
+
+      return storageData;
+    } catch (error) {
+      console.error("Error creating account:", error);
+      return false;
+    }
+  };
+
+  const handleRemoveConfirm = async () => {
+    try {
+      const success = await handleRemoving(data.id);
+      if (success) {
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Khoản thu chi đã xoá thành công!",
+        });
+
+        setTimeout(() => {
+          onPressClose();
+        }, 1500);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Xoá thất bại, vui lòng thử lại!",
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Đã xảy ra lỗi khi xóa tài khoản. Vui lòng thử lại!",
+      });
     }
   };
 
   return (
     <View style={styles.container}>
-      <HeaderExpense
-        selectedOption={selectedOption}
-        toggleModal={toggleModal}
-        onBackPress={() => setModalVisibleHistory(true)}
-        onConfirm={() => handleSave()}
-      />
-
-      <OptionModal
-        isVisible={isModalVisible}
-        options={options}
-        toggleModal={toggleModal}
-        selectOption={selectOption}
-      />
+      {/* Header */}
+      <View style={styles.header}>
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="#fff"
+          onPress={onPressClose}
+        />
+        <Text style={styles.headerTitle}>Sửa khoản thu chi</Text>
+        <Ionicons
+          name="checkmark"
+          size={24}
+          color="#fff"
+          onPress={handleSave}
+        />
+      </View>
 
       <View style={styles.mainContent}>
         <Pressable onPress={Keyboard.dismiss}>
@@ -412,36 +422,6 @@ export default function ExpenseAdd() {
 
           <View style={styles.transactionDivider} />
 
-          {/* Tài khoản */}
-          <TouchableOpacity
-            style={styles.transactionRow}
-            onPress={() => setModalVisibleAcc(true)}
-          >
-            {selectedAccount.type === "cash" ? (
-              <Ionicons
-                name="cash-outline"
-                size={24}
-                color="#333"
-                style={styles.transactionIcon}
-              />
-            ) : (
-              <FontAwesome
-                name="bank"
-                size={24}
-                color="#333"
-                style={styles.transactionIcon}
-              />
-            )}
-            <View style={styles.transactionContent}>
-              <Text style={styles.transactionLabel}>
-                {selectedAccount.name}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color="#aaa" />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.transactionDivider} />
-
           {/* Hạng mục */}
           <TouchableOpacity
             style={styles.transactionRow}
@@ -496,30 +476,25 @@ export default function ExpenseAdd() {
             </View>
           )}
 
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={() => handleSave()}
-          >
-            <Text style={styles.saveButtonText}>Lưu</Text>
-          </TouchableOpacity>
+          {/* Nút hành động */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => setModalVisibleRemove(true)}
+            >
+              <Icon iconLib="Ionicons" icon="trash" size={24} color="red" />
+              <Text style={styles.deleteText}>Xóa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={() => handleSave()}
+            >
+              <Icon iconLib="Ionicons" icon="save" size={24} color="#fff" />
+              <Text style={styles.saveText}>Lưu</Text>
+            </TouchableOpacity>
+          </View>
         </Pressable>
       </View>
-
-      {/* Modal Accounts */}
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={modalVisibleAcc}
-        onRequestClose={() => setModalVisibleAcc(false)}
-      >
-        <AccountAdd
-          onBack={() => {
-            setModalVisibleAcc(false);
-          }}
-          selectedAccount={selectedAccount}
-          handleAccountSelect={handleAccountSelect}
-        />
-      </Modal>
 
       {/* Modal Category */}
       <Modal
@@ -538,19 +513,16 @@ export default function ExpenseAdd() {
         />
       </Modal>
 
-      {/* Modal History */}
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={modalVisibleHistory}
-        onRequestClose={() => setModalVisibleHistory(false)}
-      >
-        <HistoryScreen
-          onBack={() => {
-            setModalVisibleHistory(false);
-          }}
-        />
-      </Modal>
+      {/* Modal Remove */}
+      <ConfirmationModal
+        isVisible={modalVisibleRemove}
+        toggleModal={() => {
+          setModalVisibleRemove(false);
+        }}
+        onConfirm={() => {
+          handleRemoveConfirm();
+        }}
+      />
       <Toast />
     </View>
   );
@@ -558,23 +530,20 @@ export default function ExpenseAdd() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  headerContainer: {
+
+  header: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: "#009fda",
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "space-between",
+    paddingHorizontal: 15,
   },
-  headerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#5cc0ff",
-    paddingVertical: 5,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+  headerTitle: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
   },
-  headerButtonText: { color: "white", fontSize: 16, marginRight: 5 },
   mainContent: { flex: 1 },
   moneyInputContainer: { margin: 15 },
   moneyInputLabel: { fontSize: 16, color: "#333", textAlign: "right" },
@@ -655,15 +624,41 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 12,
   },
-  saveButton: {
-    marginTop: 10,
-    backgroundColor: "#009fda",
-    paddingVertical: 15,
-    alignItems: "center",
-    borderRadius: 10,
+  actionButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 30,
     marginHorizontal: 20,
   },
-  saveButtonText: { color: "white", fontSize: 18 },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderColor: "red",
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    flex: 0.45,
+    justifyContent: "center",
+  },
+  deleteText: {
+    color: "red",
+    marginLeft: 5,
+    fontSize: 16,
+  },
+  saveButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#009fda",
+    borderRadius: 5,
+    padding: 10,
+    flex: 0.45,
+    justifyContent: "center",
+  },
+  saveText: {
+    color: "#fff",
+    marginLeft: 5,
+    fontSize: 16,
+  },
   dividerBlock: {
     height: 10,
     backgroundColor: "#ddd",
@@ -671,3 +666,5 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
 });
+
+export default UpdateTransactionScreen;

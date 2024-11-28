@@ -22,6 +22,7 @@ import Icon from "../../../components/Icon";
 import AccountAdd from "../../ExpenseAdd/AccountAdd";
 import CustomToast from "../../../components/CustomToast";
 import { getSavingsData, saveSavingsData } from "../../../stores/savingStorage";
+import { updateAmountById } from "../../../stores/accountStorage";
 
 const accounts = [
   {
@@ -109,15 +110,6 @@ const AddSavingScreen = ({ onPressClose }) => {
     };
   }
 
-  // Số dư ban đầu (initialBalance)
-  // Tên sổ tiết kiệm (accountName)
-  // Ngày gửi (depositDate)
-  // Kỳ hạn (term)
-  // Lãi suất (interestRate)
-  // Loại lãi suất (interestType)
-  // Số tiền tất toán (settlementAmount): Hệ thống tự động tính dựa trên số dư ban đầu, lãi suất và kỳ hạn.
-  // Trạng thái (status): Hệ thống tự động cập nhật dựa trên ngày đáo hạn và các giao dịch của người dùng.
-
   const handleCreateLoading = async (interestResult) => {
     const savingsPrepare = {
       id: getRandomId(),
@@ -140,6 +132,22 @@ const AddSavingScreen = ({ onPressClose }) => {
         tbl: "savings",
         id: savingsPrepare.id,
         data: savingsPrepare,
+      });
+
+      await updateAmountById(
+        savingsPrepare.accountId,
+        savingsPrepare.amount,
+        "minus"
+      );
+
+      await addHandleAsyncData({
+        type: "update",
+        tbl: "amount",
+        id: savingsPrepare.accountId,
+        data: {
+          id: savingsPrepare.accountId,
+          amount: "-" + savingsPrepare.amount,
+        },
       });
       return updatedData;
     } catch (error) {
