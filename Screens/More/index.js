@@ -21,7 +21,6 @@ const More = () => {
   const [modalVisibleProfile, setModalVisibleProfile] = useState(false);
   const [modalVisibleSetting, setModalVisibleSetting] = useState(false);
   const { logoutAuthContext } = useContext(AuthContext);
-  const userName = "Hoàng Quang Sang";
 
   const openLink = async (url) => {
     try {

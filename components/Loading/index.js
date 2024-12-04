@@ -17,7 +17,7 @@ const Loading = ({
   ) : (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={color} style={styles.spinner} />
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: "#000" }]}>{message}</Text>
     </View>
   );
 };

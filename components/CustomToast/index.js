@@ -1,13 +1,26 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const CustomToast = ({ text1, text2, props }) => {
+const CustomToast = ({ text1, text2, props, type = "success" }) => {
   const { data } = props || {};
+
+  // Chọn màu sắc dựa trên loại Toast
+  const getBorderColor = () => {
+    switch (type) {
+      case "warning":
+        return "#ffc107"; // Màu vàng cho warning
+      case "success":
+      default:
+        return "#28a745"; // Màu xanh cho success (mặc định)
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* Left colored bar */}
-      <View style={styles.borderLeft} />
+      <View
+        style={[styles.borderLeft, { backgroundColor: getBorderColor() }]}
+      />
 
       {/* Content area */}
       <View style={styles.contentContainer}>
@@ -64,7 +77,6 @@ const styles = StyleSheet.create({
   },
   borderLeft: {
     width: 8,
-    backgroundColor: "#28a745", // Green color for success
     borderBottomLeftRadius: 8,
     borderTopLeftRadius: 8,
   },

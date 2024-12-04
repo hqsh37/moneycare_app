@@ -30,6 +30,9 @@ import { addHandleAsyncData } from "../../services/asyncData";
 import { checkNetworkStatus } from "../../services/asyncDataCloud";
 import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
 import { updateAmountById } from "../../stores/accountStorage";
+import { getSpendingAlertData } from "../../stores/spendingAlertStorage";
+import CustomToast from "../../components/CustomToast";
+import { sendNotification } from "../../utils/sendNotification";
 
 // Initialize the current time
 const currentDateTime = new Date();
@@ -53,6 +56,7 @@ export default function ExpenseAdd() {
     id: 0,
     name: "Chọn tài khoản",
     type: "cash",
+    amount: 0,
   });
   const [selection, setSelection] = useState({
     start: 0,
@@ -67,6 +71,10 @@ export default function ExpenseAdd() {
   // Trạng thái điều khiển DateTimePicker Modal
   const [showPicker, setShowPicker] = useState(false);
   const [pickerMode, setPickerMode] = useState("date");
+
+  const toastConfig = {
+    custom_warning: (props) => <CustomToast {...props} type="warning" />,
+  };
 
   // handle change amount
   const formatCurrency = (value) => {
@@ -88,6 +96,7 @@ export default function ExpenseAdd() {
       id: 0,
       name: "Chọn tài khoản",
       type: "cash",
+      amount: 0,
     });
     setSelectedImage(null);
     setDate(currentDateTime);
@@ -273,6 +282,48 @@ export default function ExpenseAdd() {
     }
   };
 
+  const getLowestSpendingAlert = (alerts, currentAmount) => {
+    return alerts.reduce((closest, alert) => {
+      if (alert.amount > currentAmount) {
+        if (!closest || alert.amount < closest.amount) {
+          return alert;
+        }
+      }
+      return closest;
+    }, null);
+  };
+
+  const checkAlert = async (selectedAccount, amount) => {
+    const storedReminders = await getSpendingAlertData();
+
+    const alerts = storedReminders.filter(
+      (r) => r.idAccount === selectedAccount.id
+    );
+
+    if (alerts.length > 0) {
+      const alert = getLowestSpendingAlert(
+        alerts,
+        selectedOption === "Chi tiền"
+          ? Number(selectedAccount.amount) - Number(amount)
+          : Number(selectedAccount.amount) + Number(amount)
+      );
+
+      if (alert) {
+        Toast.show({
+          type: "custom_warning",
+          position: "top",
+          text1: alert.title,
+          text2: alert.content,
+          visibilityTime: 4000,
+          autoHide: true,
+          topOffset: 30,
+        });
+
+        sendNotification(alert.title, alert.content);
+      }
+    }
+  };
+
   // Handle Toast Message save
   const handleSave = async () => {
     // Kiểm tra dữ liệu hợp lệ
@@ -310,6 +361,8 @@ export default function ExpenseAdd() {
         text1: "Thành công",
         text2: "Giao dịch đã được thêm thành công",
       });
+
+      checkAlert(selectedAccount, parseCurrency(amount));
 
       setTimeout(() => {
         asyncData();
@@ -551,7 +604,7 @@ export default function ExpenseAdd() {
           }}
         />
       </Modal>
-      <Toast />
+      <Toast config={toastConfig} />
     </View>
   );
 }

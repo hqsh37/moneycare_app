@@ -30,22 +30,24 @@ import { asyncDataCloud } from "../../../handlers/dataAsyncHandle";
 import { addHandleAsyncData } from "../../../services/asyncData";
 import { useDebounce } from "../../../hooks";
 import DetailAccountScreen from "./DetailAccountScreen";
+import SpendingAlert from "./SpendingAlert";
 
 const SubAccount = ({ textSearch = "" }) => {
   const [accounts, setAccounts] = useState([]);
   const [accountViews, setAccountViews] = useState([]);
   const [sumCash, setSumCash] = useState(0);
-  const [modalVisibleCreate, setModalVisibleCreate] = useState(false);
-  const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
-  const [modalVisibleDetail, setModalVisibleDetail] = useState(false);
-  const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
   const [isAcctionMenu, setAcctionMenu] = useState(false);
   const [acctionAccount, setAcctionAccount] = useState({});
   const [reload, setReload] = useState(false);
   const [isloading, setIsloading] = useState(false);
 
   const debouncedValue = useDebounce(textSearch, 500);
-
+  // modal visibility
+  const [modalVisibleCreate, setModalVisibleCreate] = useState(false);
+  const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
+  const [modalVisibleDetail, setModalVisibleDetail] = useState(false);
+  const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
+  const [modalVisibleAlert, setModalVisibleAlert] = useState(false);
   // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   useEffect(() => {
@@ -211,6 +213,12 @@ const SubAccount = ({ textSearch = "" }) => {
     setModalVisibleDetail(true);
   };
 
+  // Detail Account
+  const handleAlert = () => {
+    setAcctionMenu(!isAcctionMenu);
+    setModalVisibleAlert(true);
+  };
+
   // Hàm này được gọi khi người dùng vuốt xuống để làm mới
   const onRefresh = () => {
     setReload(!reload);
@@ -306,6 +314,7 @@ const SubAccount = ({ textSearch = "" }) => {
               onUpdate={handleUpdateAccount}
               onRemove={handleRemoveAccount}
               onDetail={handleDetailAccount}
+              onAlert={handleAlert}
             />
           </ModalNew>
           {/* Modal Update */}
@@ -345,6 +354,19 @@ const SubAccount = ({ textSearch = "" }) => {
               id={acctionAccount.id}
               type={acctionAccount.type}
               name={acctionAccount.name}
+            />
+          </Modal>
+
+          {/* Modal Spend Alert */}
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={modalVisibleAlert}
+            onRequestClose={() => setModalVisibleAlert(false)}
+          >
+            <SpendingAlert
+              onBack={() => setModalVisibleAlert(false)}
+              idAccount={acctionAccount.id}
             />
           </Modal>
 

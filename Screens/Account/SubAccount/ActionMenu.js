@@ -3,7 +3,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-const ActionMenu = ({ onUpdate, onRemove, onDetail }) => {
+const ActionMenu = ({ onUpdate, onRemove, onDetail, onAlert }) => {
   return (
     <View style={styles.modalContent}>
       <TouchableOpacity style={styles.menuItem} onPress={onUpdate}>
@@ -14,6 +14,11 @@ const ActionMenu = ({ onUpdate, onRemove, onDetail }) => {
       <TouchableOpacity style={styles.menuItem} onPress={onRemove}>
         <Ionicons name="trash-outline" size={24} color="fff" />
         <Text style={styles.menuText}>Xóa</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.menuItem} onPress={onAlert}>
+        <Ionicons name="receipt-outline" size={24} color="fff" />
+        <Text style={styles.menuText}>Cảnh báo chi</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.menuItem} onPress={onDetail}>
