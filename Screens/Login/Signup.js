@@ -7,39 +7,134 @@ import {
   StyleSheet,
   Linking,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Ionicons";
+import { registerAuth } from "../../services/auth";
+import { checkNetworkStatus } from "../../services/asyncDataCloud";
 
 export default function Signup({ onBack }) {
-  const [fullName, setFullName] = useState("");
-  const [firstName, setFirstName] = useState("");
+  const [fisrtName, setFisrtName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const validateInput = () => {
+    if (!fisrtName.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Họ không được để trống.",
+      });
+      return false;
+    }
+    if (!lastName.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Tên không được để trống.",
+      });
+      return false;
+    }
+    if (!email.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Email không được để trống.",
+      });
+      return false;
+    }
+    if (!email.match(/^\S+@\S+\.\S+$/)) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Email không hợp lệ.",
+      });
+      return false;
+    }
+    if (password.length < 6) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Mật khẩu phải có ít nhất 6 ký tự.",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignup = async () => {
+    const isConnected = await checkNetworkStatus();
+
+    if (validateInput() && isConnected) {
+      const result = await registerAuth(email, password, fisrtName, lastName);
+
+      if (result === 201) {
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Đăng ký tài khoản thành công!",
+        });
+        setTimeout(() => {
+          onBack();
+        }, 2000);
+      } else if (result === 400) {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Đăng ký thất bại vui lòng kiểm tra lại!",
+        });
+      } else if (result === 409) {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Email đã tồn tại.",
+        });
+      } else if (result === 500) {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Đã xảy ra lôi khi đăng ký. Vui lòng thử lại!",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Đã xảy ra lôi khi đăng ký. Vui lòng thử lại!",
+        });
+      }
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Vui lòng kiểm tra kết nối mạng để đăng ký.",
+      });
+    }
+  };
 
   return (
     <View style={styles.wrapper}>
       <Text style={styles.logoText}>ĐĂNG KÝ</Text>
 
-      {/* Họ và tên đệm */}
+      {/* Họ */}
       <TextInput
         style={styles.input}
-        placeholder="Họ và tên đệm *"
-        value={fullName}
-        onChangeText={setFullName}
+        placeholder="Họ"
+        value={fisrtName}
+        onChangeText={setFisrtName}
       />
 
       {/* Tên */}
       <TextInput
         style={styles.input}
-        placeholder="Tên *"
-        value={firstName}
-        onChangeText={setFirstName}
+        placeholder="Tên"
+        value={lastName}
+        onChangeText={setLastName}
       />
 
       {/* Email */}
       <TextInput
         style={styles.input}
-        placeholder="Email *"
+        placeholder="Email"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
@@ -49,7 +144,7 @@ export default function Signup({ onBack }) {
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Mật khẩu *"
+          placeholder="Mật khẩu"
           secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
@@ -74,7 +169,10 @@ export default function Signup({ onBack }) {
       </Text>
 
       {/* Nút Đăng ký */}
-      <TouchableOpacity style={styles.registerButton}>
+      <TouchableOpacity
+        style={styles.registerButton}
+        onPress={() => handleSignup()}
+      >
         <Text style={styles.registerButtonText}>ĐĂNG KÝ</Text>
       </TouchableOpacity>
 
@@ -85,6 +183,7 @@ export default function Signup({ onBack }) {
           Đăng nhập ngay
         </Text>
       </Text>
+      <Toast />
     </View>
   );
 }
@@ -92,10 +191,9 @@ export default function Signup({ onBack }) {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 60,
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
   },
   logoText: {
     fontSize: 24,
@@ -128,12 +226,12 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   linkText: {
-    color: "#1E90FF",
+    color: "#009fda",
   },
   registerButton: {
     width: "100%",
     height: 50,
-    backgroundColor: "#1E90FF",
+    backgroundColor: "#009fda",
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",

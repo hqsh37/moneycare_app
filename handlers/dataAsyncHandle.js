@@ -36,6 +36,8 @@ export const asyncDataCloud = async () => {
     }
   } else {
     const info = await getInfo();
+    console.log(info);
+
     await syncDataWithTimestamps(info);
   }
 };

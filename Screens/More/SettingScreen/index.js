@@ -12,24 +12,28 @@ import Icon from "../../../components/Icon";
 import PrivacyPolicyScreen from "./PrivacyPolicyScreen";
 import TermsAndConditionScreen from "./TermsAndConditionScreen";
 import InfoUsScreen from "./InfoUsScreen";
+import ChangePasswordScreen from "./ChangePasswordScreen";
+import ReminderScreen from "./ReminderScreen";
 
 const SettingScreen = ({ onBack = () => {} }) => {
   const [modalVisiblePolicy, setModalVisiblePolicy] = useState(false);
   const [modalVisibleTerm, setModalVisibleTerm] = useState(false);
   const [modalVisibleInfo, setModalVisibleInfo] = useState(false);
+  const [modalVisibleChangePass, setModalVisibleChangePass] = useState(false);
+  const [modalVisibleReminder, setModalVisibleReminder] = useState(false);
 
   const menuItems = [
     {
       id: "1",
       title: "Nhắc nhở nhập liệu",
       icon: "alarm-outline", // Biểu tượng đồng hồ báo thức
-      onPress: () => Alert.alert("Nhắc nhở", "Cài đặt nhắc nhở nhập liệu."),
+      onPress: () => setModalVisibleReminder(true),
     },
     {
       id: "2",
       title: "Đổi mật khẩu",
       icon: "key-outline", // Biểu tượng chìa khóa
-      onPress: () => Alert.alert("Đổi mật khẩu", "Chức năng đổi mật khẩu."),
+      onPress: () => setModalVisibleChangePass(true),
     },
     {
       id: "3",
@@ -118,6 +122,26 @@ const SettingScreen = ({ onBack = () => {} }) => {
         onRequestClose={() => setModalVisibleInfo(false)}
       >
         <InfoUsScreen onBack={() => setModalVisibleInfo(false)} />
+      </Modal>
+
+      {/* Modal change password*/}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleChangePass}
+        onRequestClose={() => setModalVisibleChangePass(false)}
+      >
+        <ChangePasswordScreen onBack={() => setModalVisibleChangePass(false)} />
+      </Modal>
+
+      {/* Modal reminder*/}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleReminder}
+        onRequestClose={() => setModalVisibleReminder(false)}
+      >
+        <ReminderScreen onBack={() => setModalVisibleReminder(false)} />
       </Modal>
     </View>
   );

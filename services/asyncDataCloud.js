@@ -10,11 +10,14 @@ import {
 import { saveCategorySpend } from "../stores/categorySpend";
 import { saveCategoryCollect } from "../stores/categoryCollect";
 import { convertDataAccount, getListAccounts } from "./account";
-import { saveAccountData } from "../stores/accountStorage";
+import { deleteAccountData, saveAccountData } from "../stores/accountStorage";
 import { convertDataTransactions, getListTransactions } from "./transaction";
-import { saveTransactionData } from "../stores/transactionStorage";
+import {
+  deleteTransactionData,
+  saveTransactionData,
+} from "../stores/transactionStorage";
 import { convertDataSavings, getListSavings } from "./savings";
-import { saveSavingsData } from "../stores/savingStorage";
+import { deleteSavingsData, saveSavingsData } from "../stores/savingStorage";
 
 export const asyncDataAction = async (actionList) => {
   try {
@@ -43,12 +46,18 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
 
     // Step 2: Determine which timestamps have changed
     const updates = {
-      categoryAt: newTimestamps.categoryAt !== storedTimestamps.categoryAt,
-      accountAt: newTimestamps.accountAt !== storedTimestamps.accountAt,
+      categoryAt:
+        newTimestamps.categoryAt === null ||
+        newTimestamps.categoryAt !== storedTimestamps.categoryAt,
+      accountAt:
+        newTimestamps.accountAt === null ||
+        newTimestamps.accountAt !== storedTimestamps.accountAt,
       transactionAt:
+        newTimestamps.transactionAt === null ||
         newTimestamps.transactionAt !== storedTimestamps.transactionAt,
-
-      savingsAt: newTimestamps.savingsAt !== storedTimestamps.savingsAt,
+      savingsAt:
+        newTimestamps.savingsAt === null ||
+        newTimestamps.savingsAt !== storedTimestamps.savingsAt,
     };
 
     // Step 3: Update local data based on which timestamps have changed
@@ -69,8 +78,11 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
 
     if (updates.accountAt) {
       const accounts = await getListAccounts();
+
       if (accounts) {
         await saveAccountData(convertDataAccount(accounts));
+      } else {
+        await deleteAccountData();
       }
       console.log("Updating account data...");
     }
@@ -80,6 +92,8 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
 
       if (transactions) {
         await saveTransactionData(convertDataTransactions(transactions));
+      } else {
+        await deleteTransactionData();
       }
       console.log("Updating transaction data...");
     }
@@ -89,13 +103,20 @@ export const syncDataWithTimestamps = async (newTimestamps) => {
 
       if (savings) {
         await saveSavingsData(convertDataSavings(savings));
+      } else {
+        await deleteSavingsData();
       }
       console.log("Updating savings data...");
     }
 
+    const allFalse = Object.values(updates).every((value) => value === false);
+
+    if (!allFalse) {
+      await saveTimestamps(newTimestamps);
+      console.log("Timestamps updated and saved successfully.");
+    }
+
     // Step 4: After successful updates, save the new timestamps
-    await saveTimestamps(newTimestamps);
-    console.log("Timestamps updated and saved successfully.");
   } catch (error) {
     console.error("Error during data synchronization:", error);
     // Optional: handle partial success cases or re-attempt synchronization

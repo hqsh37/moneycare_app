@@ -14,7 +14,10 @@
       "supportsTablet": true
     },
     "android": {
-      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/image/logo.png",
         "backgroundColor": "#ffffff"
@@ -28,6 +31,9 @@
       "eas": {
         "projectId": "27d84c12-bba3-4041-b73b-b545d32a6619"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

@@ -1,21 +1,202 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Modal,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LineChart } from "react-native-chart-kit";
+import AccountAdd from "./AccountAdd";
+import CategoryAdd from "./CategoryAdd";
+import Icon from "../../../components/Icon";
+import { getTransactionData } from "../../../stores/transactionStorage";
 
 const ExpenseAnalysis = ({ onBack }) => {
   const [selectedTab, setSelectedTab] = useState("NGÀY");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [selectedOption, setSelectedOption] = useState("Chi tiền");
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [selectedCategory, setSelectedCategory] = useState({
+    id: 0,
+    name: "Tất cả hạng mục",
+    icon: "pricetag-outline",
+    iconLib: "Ionicons",
+  });
+  const [selectedAccount, setSelectedAccount] = useState({
+    id: 0,
+    name: "Tất cả tài khoản",
+    type: "cash",
+  });
+  const [cash, setCash] = useState(0);
+  const [dataChart, setdataChart] = useState([{ date: "", amount: 0 }]);
+
+  // Visible toggle modal
+  const [modalVisibleCate, setModalVisibleCate] = useState(false);
+  const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
+
+  useEffect(() => {
+    // Get the current date
+    const today = new Date();
+
+    // Get the start date of the current month
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Get the end date of the current month
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    // Set state for start and end dates
+    setStartDate(startOfMonth);
+    setEndDate(endOfMonth);
+  }, []);
+
+  useEffect(() => {
+    handleLoadData();
+  }, [selectedCategory, selectedAccount, startDate, endDate, selectedTab]);
+
+  function convertToDate(dateString) {
+    const [day, month, year, hours, minutes] = dateString.split(/[\s/,:]+/); // Split by space, slash, and colon
+    return new Date(year, month - 1, day, hours, minutes); // months are 0-indexed
+  }
+
+  const handleLoadData = async () => {
+    const data = await getTransactionData();
+
+    let filteredData;
+    let sumCash = 0;
+
+    filteredData = data.filter((transaction) => {
+      // Convert transaction date to Date object
+      const date = convertToDate(transaction.date);
+
+      const isType = transaction.type == "chi";
+
+      // Check if the transaction is within the selected range
+      const isDateInRange = date >= startDate && date <= endDate;
+
+      // Check if the categoryId should be filtered
+      const isCategoryValid =
+        selectedCategory.id === 0 ||
+        transaction.categoryId == selectedCategory.id;
+
+      // Check if the accountId should be filtered
+      const isAccountValid =
+        selectedAccount.id === 0 || transaction.accountId == selectedAccount.id;
+
+      // Determine if the transaction is valid based on all filters
+      const isFilterValid =
+        isDateInRange && isCategoryValid && isAccountValid && isType;
+
+      // If the transaction passes the filters, proceed with further logic
+      if (isFilterValid) {
+        // Add the amount to the sum and chart preparation data
+        sumCash += Number(transaction.amount);
+      }
+
+      return isFilterValid;
+    });
+
+    // Update the state with the results
+    setCash(sumCash);
+
+    if (filteredData.length > 0) {
+      // Convert the data
+      if (selectedTab === "NGÀY") {
+        const result = convertData(filteredData);
+        setdataChart(result);
+      } else if (selectedTab === "THÁNG") {
+        const result = convertDataByMonth(filteredData);
+        setdataChart(result);
+      } else {
+        const result = convertDataByYear(filteredData);
+        setdataChart(result);
+      }
+    } else {
+      setdataChart([{ date: "", amount: 0 }]);
+    }
+  };
+
+  const convertData = (data) => {
+    // Initialize an empty object to group the data by exact date
+    const groupedData = {};
+
+    data.forEach((item) => {
+      // Extract the date (DD/MM/YYYY format)
+      const date = item.date.split(" ")[0]; // "DD/MM/YYYY"
+
+      // Initialize the amount for this date if it doesn't exist
+      if (!groupedData[date]) {
+        groupedData[date] = 0;
+      }
+
+      // Add the transaction amount to the total for this date
+      groupedData[date] += Number(item.amount);
+    });
+
+    // Convert the grouped data into the desired array format [{ date, amount }]
+    return Object.keys(groupedData).map((date) => ({
+      date: "",
+      amount: groupedData[date],
+    }));
+  };
+
+  // Function to convert the data into the desired format grouped by month
+  const convertDataByMonth = (data) => {
+    // Initialize an empty object to group the data by month
+    const groupedData = {};
+
+    data.forEach((item) => {
+      // Extract the month and year from the date (MM/YYYY format)
+      const date = item.date.split(" ")[0]; // "DD/MM/YYYY"
+      const [day, month, year] = date.split("/"); // Split the date into day, month, and year
+      const monthYear = `${month}/${year}`; // Combine month and year into a "MM/YYYY" format
+
+      // Initialize the amount for this monthYear if it doesn't exist
+      if (!groupedData[monthYear]) {
+        groupedData[monthYear] = 0;
+      }
+
+      // Add the transaction amount to the total for this month
+      groupedData[monthYear] += Number(item.amount);
+    });
+
+    // Convert the grouped data into the desired array format [{ date, amount }]
+    return Object.keys(groupedData).map((monthYear) => ({
+      date: monthYear.slice(0, 2),
+      amount: groupedData[monthYear],
+    }));
+  };
+
+  // Function to convert the data into the desired format grouped by year
+  const convertDataByYear = (data) => {
+    // Initialize an empty object to group the data by year
+    const groupedData = {};
+
+    data.forEach((item) => {
+      // Extract the year from the date (YYYY format)
+      const date = item.date.split(" ")[0]; // "DD/MM/YYYY"
+      const [day, month, year] = date.split("/"); // Split the date into day, month, and year
+      const yearOnly = year; // Extract the year part
+
+      // Initialize the amount for this year if it doesn't exist
+      if (!groupedData[yearOnly]) {
+        groupedData[yearOnly] = 0;
+      }
+
+      // Add the transaction amount to the total for this year
+      groupedData[yearOnly] += Number(item.amount);
+    });
+
+    // Convert the grouped data into the desired array format [{ date, amount }]
+    return Object.keys(groupedData).map((yearOnly) => ({
+      date: yearOnly,
+      amount: groupedData[yearOnly],
+    }));
+  };
 
   // Hàm xử lý khi chọn ngày bắt đầu
   const onStartDateChange = (event, selectedDate) => {
@@ -31,6 +212,23 @@ const ExpenseAnalysis = ({ onBack }) => {
     setEndDate(currentDate);
   };
 
+  // func handle categories
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+  };
+
+  // func handle account
+  const handleAccountSelect = (account) => {
+    setSelectedAccount(account);
+  };
+
+  const formatCurrencyVND = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
+
   // Hàm để render nội dung dựa trên tab được chọn
   const renderContent = () => {
     return (
@@ -40,9 +238,14 @@ const ExpenseAnalysis = ({ onBack }) => {
             onPress={() => setShowStartPicker(true)}
             style={styles.filterItem}
           >
-            <Icon name="calendar-outline" size={24} color="#666" />
+            <Icon
+              iconLib="Ionicons"
+              icon="calendar-outline"
+              size={24}
+              color="#666"
+            />
             <Text style={styles.filterText}>
-              Ngày bắt đầu: {startDate.toLocaleDateString()}
+              Ngày bắt đầu: {startDate.toLocaleDateString("en-GB")}
             </Text>
           </TouchableOpacity>
 
@@ -51,23 +254,79 @@ const ExpenseAnalysis = ({ onBack }) => {
             onPress={() => setShowEndPicker(true)}
             style={styles.filterItem}
           >
-            <Icon name="calendar-outline" size={24} color="#666" />
+            <Icon
+              iconLib="Ionicons"
+              icon="calendar-outline"
+              size={24}
+              color="#666"
+            />
             <Text style={styles.filterText}>
-              Ngày kết thúc: {endDate.toLocaleDateString()}
+              Ngày kết thúc: {endDate.toLocaleDateString("en-GB")}
             </Text>
           </TouchableOpacity>
 
-          {/* Bộ lọc hạng mục chi */}
-          <View style={styles.filterItem}>
-            <Icon name="fast-food-outline" size={24} color="#FFA500" />
-            <Text style={styles.filterText}>Tất cả hạng mục chi</Text>
-          </View>
+          {/* Tài khoản */}
+          <TouchableOpacity
+            style={styles.transactionRow}
+            onPress={() => setModalVisibleAcc(true)}
+          >
+            {selectedAccount.type === "cash" ? (
+              <Icon
+                iconLib="Ionicons"
+                icon="cash-outline"
+                size={24}
+                color="#333"
+                style={styles.transactionIcon}
+              />
+            ) : (
+              <Icon
+                iconLib="FontAwesome"
+                icon="bank"
+                size={24}
+                color="#333"
+                style={styles.transactionIcon}
+              />
+            )}
+            <View style={styles.transactionContent}>
+              <Text style={styles.transactionLabel}>
+                {selectedAccount.name}
+              </Text>
 
-          {/* Bộ lọc tài khoản */}
-          <View style={styles.filterItem}>
-            <Icon name="card-outline" size={24} color="#666" />
-            <Text style={styles.filterText}>Tất cả tài khoản</Text>
-          </View>
+              <Icon
+                iconLib="Ionicons"
+                icon="chevron-forward"
+                size={20}
+                color="#aaa"
+              />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.transactionDivider} />
+
+          {/* Hạng mục */}
+          <TouchableOpacity
+            style={styles.transactionRow}
+            onPress={() => setModalVisibleCate(true)}
+          >
+            <Icon
+              iconLib={selectedCategory.iconLib}
+              icon={selectedCategory.icon}
+              size={24}
+              color="#333"
+              style={styles.transactionIcon}
+            />
+            <View style={styles.transactionContent}>
+              <Text style={styles.transactionLabel}>
+                {selectedCategory.name}
+              </Text>
+              <Icon
+                iconLib="Ionicons"
+                icon="chevron-forward"
+                size={20}
+                color="#aaa"
+              />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Hiển thị DatePicker nếu cần */}
@@ -92,10 +351,10 @@ const ExpenseAnalysis = ({ onBack }) => {
         <View style={styles.chartContainer}>
           <LineChart
             data={{
-              labels: ["", "", "", "", "", ""], // Bỏ tiêu đề trục X
+              labels: dataChart.map((i) => i.date), // Bỏ tiêu đề trục X
               datasets: [
                 {
-                  data: [5000, 10000, 7500, 12000, 11000, 15000],
+                  data: dataChart.map((i) => i.amount),
                 },
               ],
             }}
@@ -128,11 +387,15 @@ const ExpenseAnalysis = ({ onBack }) => {
         <View style={styles.summary}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Tổng chi tiêu</Text>
-            <Text style={styles.summaryValue}>0 đ</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrencyVND(cash + "")}
+            </Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Trung bình chi/ngày</Text>
-            <Text style={styles.summaryValue}>0 đ</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrencyVND(cash / +dataChart.length + "")}
+            </Text>
           </View>
         </View>
       </View>
@@ -144,11 +407,21 @@ const ExpenseAnalysis = ({ onBack }) => {
       {/* Thanh tiêu đề (Header) */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Icon name="arrow-back-outline" size={24} color="#fff" />
+          <Icon
+            iconLib="Ionicons"
+            icon="arrow-back-outline"
+            size={24}
+            color="#fff"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Phân tích chi tiêu</Text>
         <TouchableOpacity style={styles.shareButton}>
-          <Icon name="share-social-outline" size={24} color="#fff" />
+          <Icon
+            iconLib="Ionicons"
+            icon="share-social-outline"
+            size={24}
+            color="#fff"
+          />
         </TouchableOpacity>
       </View>
 
@@ -176,6 +449,39 @@ const ExpenseAnalysis = ({ onBack }) => {
 
       {/* Render content chose */}
       {renderContent()}
+
+      {/* Modal Accounts */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleAcc}
+        onRequestClose={() => setModalVisibleAcc(false)}
+      >
+        <AccountAdd
+          onBack={() => {
+            setModalVisibleAcc(false);
+          }}
+          selectedAccount={selectedAccount}
+          handleAccountSelect={handleAccountSelect}
+        />
+      </Modal>
+
+      {/* Modal Category */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleCate}
+        onRequestClose={() => setModalVisibleCate(false)}
+      >
+        <CategoryAdd
+          onBack={() => {
+            setModalVisibleCate(false);
+          }}
+          type={selectedOption}
+          selectedCategory={selectedCategory}
+          handleCategorySelect={handleCategorySelect}
+        />
+      </Modal>
     </View>
   );
 };
@@ -240,6 +546,20 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "#666",
   },
+  transactionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    justifyContent: "space-between",
+  },
+  transactionIcon: { width: 30, textAlign: "center", marginRight: 8 },
+  transactionContent: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  transactionLabel: { fontSize: 16, color: "#333" },
+  transactionValue: { fontSize: 16, color: "#333" },
   chartContainer: {
     justifyContent: "center",
     alignItems: "center",

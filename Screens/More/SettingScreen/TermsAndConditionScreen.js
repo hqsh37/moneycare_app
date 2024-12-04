@@ -68,7 +68,7 @@ const TermsAndConditionScreen = ({ onBack = () => {} }) => {
         <Text style={styles.sectionTitle}>5. Liên hệ</Text>
         <Text style={styles.text}>
           Nếu bạn có bất kỳ câu hỏi hoặc thắc mắc nào liên quan đến chính sách
-          bảo mật này, vui lòng liên hệ với chúng tôi qua email{" "}
+          bảo mật này, vui lòng liên hệ với chúng tôi qua email:{" "}
           <Text style={styles.bold}>hqsh37@moneycare.io.vn</Text>.
         </Text>
       </ScrollView>
@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
     color: "#666",
     lineHeight: 24,
     marginBottom: 10,
+    textAlign: "justify",
   },
   bold: {
     fontWeight: "bold",

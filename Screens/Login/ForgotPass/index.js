@@ -5,28 +5,48 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Modal,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import Toast from "react-native-toast-message";
+import VerificationScreen from "./VerificationScreen";
+import Loading from "../../../components/Loading";
+import { forgotAuth } from "../../../services/auth";
 
 const ForgotPass = ({ onBack }) => {
   const [email, setEmail] = useState("");
-  const [isEmailHidden, setIsEmailHidden] = useState(false);
+  const [isEmail, setISEmail] = useState(false);
+  const [isLoading, setISLoading] = useState(false);
 
-  // Hàm chuyển đổi email thành dấu *
-  const renderHiddenEmail = (email) => {
-    if (isEmailHidden && email.length > 0) {
-      return email.replace(/./g, "•");
+  const handleVerification = async () => {
+    setISLoading(true);
+    const result = await forgotAuth(email);
+    setISLoading(false);
+    if (result) {
+      setISEmail(true);
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Đã xảy ra lỗi, vui lòng thử lại sau.",
+      });
     }
-    return email;
   };
 
   const handleForgotPassword = () => {
-    console.log("Mã xác thực được gửi đến: ", email);
+    if (!email.match(/^\S+@\S+\.\S+$/)) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Email không hợp lệ.",
+      });
+      return false;
+    }
+
+    handleVerification();
   };
 
   return (
     <View style={styles.container}>
-      {/* Tiêu đề chính */}
       <Text style={styles.title}>Lấy lại mật khẩu</Text>
 
       {/* Hướng dẫn */}
@@ -38,20 +58,10 @@ const ForgotPass = ({ onBack }) => {
         <TextInput
           style={styles.input}
           placeholder="Nhập email của bạn"
-          value={renderHiddenEmail(email)}
+          value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
         />
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setIsEmailHidden(!isEmailHidden)}
-        >
-          <Icon
-            name={isEmailHidden ? "eye-off" : "eye"}
-            size={24}
-            color="#555"
-          />
-        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
@@ -63,6 +73,22 @@ const ForgotPass = ({ onBack }) => {
           <Text style={styles.link}>Quay lại đăng nhập</Text>
         </TouchableOpacity>
       </View>
+      <Toast />
+
+      {/* Modal Verification */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={isEmail}
+        onRequestClose={() => setISEmail(false)}
+      >
+        <VerificationScreen
+          onBack={() => setISEmail(false)}
+          onHome={() => onBack()}
+          email={email}
+        />
+      </Modal>
+      {isLoading && <Loading transparent />}
     </View>
   );
 };
@@ -70,7 +96,9 @@ const ForgotPass = ({ onBack }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    marginTop: 50,
+    paddingHorizontal: 20,
+    alignItems: "center",
     backgroundColor: "#fff",
   },
   title: {
@@ -105,7 +133,7 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     height: 50,
-    backgroundColor: "#1E90FF",
+    backgroundColor: "#009FDA",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 5,
@@ -122,7 +150,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   link: {
-    color: "#1E90FF",
+    color: "#009FDA",
     fontSize: 14,
     textAlign: "center",
   },

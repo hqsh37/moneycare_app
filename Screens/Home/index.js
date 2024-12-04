@@ -48,12 +48,12 @@ const Home = () => {
           0
         );
         setDataDonut([
-          { label: "Tiền mặt", value: totalCash },
+          { label: "Tiền mặt", value: totalCash < 0 ? 1 : totalCash },
           { label: "Tiết kiệm", value: totalCashSving },
         ]);
       } else {
         setDataDonut([
-          { label: "Tiền mặt", value: totalCash },
+          { label: "Tiền mặt", value: totalCash < 0 ? 1 : totalCash },
           { label: "Tiết kiệm", value: 0 },
         ]);
       }
@@ -61,7 +61,8 @@ const Home = () => {
       setSumCash(totalCash);
       setName(user.lastname);
     } else {
-      setSumCash(0); // Đặt sumCash về 0 nếu không có dữ liệu
+      setSumCash(0);
+      setDataDonut([{ label: "Trống", value: 1 }]);
     }
 
     const transactionDatas = await getTransactionData();

@@ -34,6 +34,7 @@ const IncomeExpenseReport = ({ onBack }) => {
   useEffect(() => {
     const fetchData = async () => {
       const dataTransactions = await getTransactionData();
+
       const dataConverted = convertToYearMonthSummary(dataTransactions);
       setTransactions(dataConverted);
     };

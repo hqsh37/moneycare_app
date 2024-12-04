@@ -14,12 +14,13 @@ import FinancialReport from "./FinancialReport";
 import ExpenseAnalysis from "./ExpenseAnalysis";
 import IncomeExpenseReport from "./IncomeExpenseReport";
 import IncomeAnalysis from "./IncomeAnalysis";
+import Sitemap from "./SiteMap";
 
 // Các component trang (đảm bảo đây là function components);
 
 const FinancialAnalysis = () => (
   <View>
-    <Text style={styles.pageText}>Phân tích tài chính</Text>
+    <Text style={styles.pageText}>Site map</Text>
   </View>
 );
 
@@ -65,10 +66,10 @@ const Report = () => {
     },
     {
       id: "8",
-      title: "Phân tích tài chính",
-      icon: "file-chart",
+      title: "Site map",
+      icon: "view-dashboard",
       color: "#9c27b0",
-      component: FinancialAnalysis,
+      component: Sitemap,
     },
   ];
 

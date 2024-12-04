@@ -27,6 +27,24 @@ export default function Login() {
   const { loginAuthContext } = useContext(AuthContext);
 
   const handleLogin = async () => {
+    if (!email.match(/^\S+@\S+\.\S+$/)) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Email không hợp lệ.",
+      });
+      return false;
+    }
+
+    if (password.length < 6) {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Mật khẩu phải có ít nhất 6 ký tự.",
+      });
+      return false;
+    }
+
     const token = await loginAuth(email, password);
     console.log(token);
 

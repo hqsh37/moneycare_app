@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from "react";
 
 import { getData, storeData, removeData } from "./storage";
 import { setAuthToken } from "./api";
+import { deleteTimestamps } from "../stores/Timestamp";
 
 // Tạo AuthContext
 export const AuthContext = createContext();
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }) => {
   const logoutAuthContext = async () => {
     try {
       await removeData("userToken");
+      await deleteTimestamps();
       setToken(null); // Đặt lại token về null để điều hướng lại màn hình đăng nhập
     } catch (error) {
       console.error("Error during logout:", error);
