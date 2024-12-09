@@ -15,14 +15,7 @@ import ExpenseAnalysis from "./ExpenseAnalysis";
 import IncomeExpenseReport from "./IncomeExpenseReport";
 import IncomeAnalysis from "./IncomeAnalysis";
 import Sitemap from "./SiteMap";
-
-// Các component trang (đảm bảo đây là function components);
-
-const FinancialAnalysis = () => (
-  <View>
-    <Text style={styles.pageText}>Site map</Text>
-  </View>
-);
+import SpendIncomePlan from "./SpendIncomePlan";
 
 const Report = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -65,11 +58,18 @@ const Report = () => {
       component: CategoryScreen,
     },
     {
-      id: "8",
+      id: "6",
       title: "Site map",
       icon: "view-dashboard",
       color: "#9c27b0",
       component: Sitemap,
+    },
+    {
+      id: "7",
+      title: "Kế hạch dự thu/dự chi",
+      icon: "currency-usd", // Thay đổi icon
+      color: "#e91e63", // Thay đổi màu
+      component: SpendIncomePlan,
     },
   ];
 

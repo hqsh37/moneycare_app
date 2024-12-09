@@ -31,6 +31,7 @@ const UpdateAccountScreen = ({
   type = "cash",
   descOld = "",
   onPressClose,
+  onReload = () => {},
 }) => {
   const [initialBalance, setInitialBalance] = useState(balance || "0");
   const [accountName, setAccountName] = useState(name);
@@ -107,12 +108,12 @@ const UpdateAccountScreen = ({
       ? Toast.show({
           type: "success",
           text1: "Thành công",
-          text2: "Tài khoản đã được thêm thành công",
+          text2: "Tài khoản đã được sửa thành công",
         })
       : Toast.show({
           type: "error",
           text1: "Lỗi",
-          text2: "Không thể thêm dữ liệu, Vui lòng thử lại!",
+          text2: "Không thể sửa dữ liệu, Vui lòng thử lại!",
         });
     setTimeout(onPressClose, 1500);
   };

@@ -176,14 +176,14 @@ const Home = () => {
             />
 
             <View style={styles.detailAnalysis}>
-              <Text style={styles.amountSpend}>
-                {formatCurrencyVND(dataChart[0] + "")}
-              </Text>
               <Text style={styles.amountIncome}>
                 {formatCurrencyVND(dataChart[1] + "")}
               </Text>
+              <Text style={styles.amountSpend}>
+                {formatCurrencyVND(dataChart[0] + "")}
+              </Text>
               <Text style={styles.sumAmount}>
-                {formatCurrencyVND(dataChart[0] - dataChart[1] + "")}
+                {formatCurrencyVND(dataChart[1] - dataChart[0] + "")}
               </Text>
             </View>
           </View>

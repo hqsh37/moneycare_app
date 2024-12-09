@@ -56,27 +56,15 @@ function HistoryScreen({ onBack = () => {} }) {
       </View>
       {isLoading ? (
         <Loading />
-      ) : viewDatas.length > 0 ? (
+      ) : (
         <FlatList
           data={viewDatas}
-          renderItem={({ item }) => (
-            <HistoryChild data={item} onReload={() => onRefresh()} />
-          )}
+          renderItem={({ item }) => <HistoryChild data={item} />}
           keyExtractor={(item, index) => index.toString()}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Icon
-            iconLib="Ionicons"
-            icon="document-outline"
-            size={60}
-            color="#666"
-          />
-          <Text style={styles.emptyText}>Chưa có dữ liệu</Text>
-        </View>
       )}
     </View>
   );
@@ -99,16 +87,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#fff",
     fontWeight: "bold",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 10,
   },
   separation: {
     height: 1,

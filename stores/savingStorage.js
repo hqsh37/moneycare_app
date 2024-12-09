@@ -23,3 +23,24 @@ export const updateSavingsData = async (newData) => {
 export const deleteSavingsData = async () => {
   await removeData(SAVINGS_FILE_NAME);
 };
+
+export const isAccountInSavings = async (id) => {
+  try {
+    // Lấy dữ liệu savings
+    const savings = await getSavingsData();
+
+    // Kiểm tra nếu savings không phải là mảng
+    if (!Array.isArray(savings)) {
+      console.error("Transaction data is not an array:", savings);
+      return false;
+    }
+
+    // Kiểm tra accountId có tồn tại hay không
+    const exists = savings.some((saving) => saving.accountId == id);
+
+    return exists; // Trả về true hoặc false
+  } catch (error) {
+    console.error("Error checking accountId in transactions:", error);
+    return false;
+  }
+};

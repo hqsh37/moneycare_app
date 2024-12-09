@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
 import AddReminderModal from "./AddReminderModal";
 import Toast from "react-native-toast-message";
 import {
@@ -15,6 +14,7 @@ import {
 } from "../../../stores/spendingAlertStorage";
 import UpdateAlertModal from "./UpdateAlertModal";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import Icon from "../../../components/Icon";
 
 const SpendingAlert = ({ idAccount, onBack = () => {} }) => {
   const [alerts, setAlerts] = useState([]);
@@ -30,18 +30,24 @@ const SpendingAlert = ({ idAccount, onBack = () => {} }) => {
   const loadReminders = async () => {
     try {
       const storedReminders = await getSpendingAlertData();
+
       setAlerts(storedReminders.filter((r) => r.idAccount === idAccount));
     } catch (error) {
       console.error("Error loading reminders:", error);
     }
   };
 
+  // console.log(JSON.stringify(selectedAlert, 0, 2));
+
   const handleSave = async (alert) => {
     const dataOld = await getSpendingAlertData();
 
     const data = [...dataOld, { idAccount: idAccount, ...alert }];
 
+    setAlerts(data.filter((r) => r.idAccount === idAccount));
     await saveSpendingAlertData(data);
+
+    loadReminders();
   };
 
   const handleAddReminder = (alert) => {
@@ -90,30 +96,34 @@ const SpendingAlert = ({ idAccount, onBack = () => {} }) => {
     setSelectedAlert(alert);
   };
 
+  const handleDataRemove = (dataOld, alertId) => {
+    const index = dataOld.findIndex((item) => item.id === alertId);
+    if (index !== -1) {
+      dataOld.splice(index, 1);
+    }
+    return dataOld;
+  };
+
   const handleRemoveConfirm = async () => {
     try {
       const dataOld = (await getSpendingAlertData()) || [];
 
       // Cập nhật dữ liệu
-      const updatedData = dataOld.map((item) =>
-        item.idAccount === idAccount && item.amount === selectedAlert.amount
-          ? { ...item, ...updatedAlert }
-          : item
-      );
+      const updatedData = handleDataRemove(dataOld, selectedAlert.id);
 
       await saveSpendingAlertData(updatedData);
-      setAlerts(updatedData.filter((r) => r.idAccount === idAccount)); // Cập nhật danh sách
-      setModalVisibleUpdate(false);
+      loadReminders();
+      setModalVisibleRemove(false);
       Toast.show({
         text1: "Thành công",
-        text2: "Cập nhật cảnh báo chi tiêu thành công.",
+        text2: "Xóa cảnh báo chi tiêu thành công.",
         type: "success",
       });
     } catch (error) {
       console.error("Error updating data:", error);
       Toast.show({
         text1: "Lỗi",
-        text2: "Không thể cập nhật cảnh báo.",
+        text2: "Không thể xóa cảnh báo.",
         type: "error",
       });
     }
@@ -124,7 +134,12 @@ const SpendingAlert = ({ idAccount, onBack = () => {} }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}>
-          <Icon name="arrow-back-outline" size={24} color="#fff" />
+          <Icon
+            iconLib="Ionicons"
+            icon="arrow-back-outline"
+            size={24}
+            color="#fff"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Cảnh báo chi tiêu</Text>
         <View />
@@ -133,7 +148,12 @@ const SpendingAlert = ({ idAccount, onBack = () => {} }) => {
       {/* Content */}
       {alerts.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="document-outline" size={60} color="#666" />
+          <Icon
+            iconLib="Ionicons"
+            icon="document-outline"
+            size={60}
+            color="#666"
+          />
           <Text style={styles.emptyText}>Chưa có dữ liệu</Text>
         </View>
       ) : (
@@ -152,9 +172,17 @@ const SpendingAlert = ({ idAccount, onBack = () => {} }) => {
 
               <TouchableOpacity
                 style={{ marginVertical: "auto", alignItems: "center" }}
-                onPress={() => setModalVisibleRemove(true)}
+                onPress={() => {
+                  setSelectedAlert(item);
+                  setModalVisibleRemove(true);
+                }}
               >
-                <Icon name="trash-outline" size={24} color="#FF0000" />
+                <Icon
+                  iconLib="Ionicons"
+                  icon="trash-outline"
+                  size={24}
+                  color="#FF0000"
+                />
               </TouchableOpacity>
             </View>
           )}

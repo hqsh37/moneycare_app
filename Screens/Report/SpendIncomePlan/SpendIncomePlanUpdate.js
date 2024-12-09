@@ -5,68 +5,85 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  Image,
   Keyboard,
   Pressable,
   Modal,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { FontAwesome, Ionicons, AntDesign } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import { useDebounce } from "../../hooks";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { useDebounce } from "../../../hooks";
 
+import OptionModal from "./OptionModal";
 import CategoryAdd from "./CategoryAdd";
-import Icon from "../../components/Icon";
+import HeaderExpense from "./HeaderExpense";
+import Icon from "../../../components/Icon";
+import AccountAdd from "./AccountAdd";
 import Toast from "react-native-toast-message";
 import {
-  getTransactionData,
-  saveTransactionData,
-} from "../../stores/transactionStorage";
-import { addHandleAsyncData } from "../../services/asyncData";
-import { updateAmountById } from "../../stores/accountStorage";
-import ConfirmationModal from "../../components/ConfirmationModal";
+  getSpendIncomePlanData,
+  saveSpendIncomePlanData,
+} from "../../../stores/spendIncomePlanStorage";
+import ConfirmationModal from "../../../components/ConfirmationModal";
 
 // Initialize the current time
 const currentDateTime = new Date();
 
-function UpdateTransactionScreen({
-  data = {},
-  onPressClose = () => {},
+export default function SpendIncomePlanUpdate({
+  onBack = () => {},
   onReload = () => {},
+  datas = {},
 }) {
-  const convertToDate = (dateString) => {
-    // Tách ngày, giờ từ chuỗi
-    const [datePart, timePart] = dateString.split(" ");
-    const [day, month, year] = datePart.split("/").map(Number);
-    const [hours, minutes] = timePart.split(":").map(Number);
-
-    // Tạo đối tượng Date (lưu ý: tháng bắt đầu từ 0)
-    return new Date(year, month - 1, day, hours, minutes);
-  };
-
   const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(
-    data.type === "chi" ? "Chi tiền" : "Thu tiền"
-  );
-  const [amount, setAmount] = useState(data.amount);
-  const [desc, setDesc] = useState(data.desc);
-  const [date, setDate] = useState(convertToDate(data.date));
-  const [time, setTime] = useState(convertToDate(data.date));
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedOption, setSelectedOption] = useState("Dự chi");
+  const [amount, setAmount] = useState("");
+  const [desc, setDesc] = useState("");
+  const [date, setDate] = useState(currentDateTime);
   const debouncedValue = useDebounce(amount, 500);
   const [selectedCategory, setSelectedCategory] = useState({
-    id: data.categoryId,
-    name: data.categoryName,
-    icon: data.icon,
-    iconLib: data.iconLib,
+    id: 0,
+    name: "Chọn hạng mục",
+    icon: "pricetag-outline",
+    iconLib: "Ionicons",
+  });
+  const [selectedAccount, setSelectedAccount] = useState({
+    id: 0,
+    name: "Chọn tài khoản",
+    type: "cash",
   });
   const [selection, setSelection] = useState({
     start: 0,
     end: 0,
   });
-  const getRandomId = () => `account_${Math.floor(Math.random() * 9999999)}`;
+
+  const convertToDate = (dateString) => {
+    // Phân tách chuỗi ngày
+    const [day, month, year] = dateString.split("/").map(Number);
+
+    // Tạo đối tượng Date (lưu ý: tháng bắt đầu từ 0, nên cần -1)
+    return new Date(year, month - 1, day);
+  };
+
+  useEffect(() => {
+    setSelectedOption(`Dự ${datas.type}`);
+    setAmount(datas.amount + "");
+    setDate(convertToDate(datas.date));
+    setSelectedAccount({
+      id: datas.accountId,
+      name: datas.accountName,
+      type: datas.accountType,
+    });
+    setSelectedCategory({
+      id: datas.categoryId,
+      name: datas.categoryName,
+      icon: datas.icon,
+      iconLib: datas.iconLib,
+    });
+    setDesc(datas.desc);
+  }, []);
+
   // Visible toggle modal
   const [modalVisibleCate, setModalVisibleCate] = useState(false);
+  const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
   const [modalVisibleRemove, setModalVisibleRemove] = useState(false);
 
   // Trạng thái điều khiển DateTimePicker Modal
@@ -75,31 +92,64 @@ function UpdateTransactionScreen({
 
   // handle change amount
   const formatCurrency = (value) => {
-    if (value) {
-      const number = parseInt(value.replace(/[^0-9]/g, ""));
-      return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
-    } else {
-      return "0";
-    }
+    const number = parseInt(value.replace(/[^0-9]/g, ""));
+    return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
   };
+
+  // Reset trạng thái dữ liệu
+  const resetForm = useCallback(() => {
+    setAmount("");
+    setDesc("");
+    setSelectedCategory({
+      id: 0,
+      name: "Chọn hạng mục",
+      icon: "pricetag-outline",
+      iconLib: "Ionicons",
+    });
+    setSelectedAccount({
+      id: 0,
+      name: "Chọn tài khoản",
+      type: "cash",
+      amount: 0,
+    });
+    setDate(currentDateTime);
+    onBack();
+  }, []);
 
   useEffect(() => {
     setAmount((pre) => formatCurrency(pre));
   }, [debouncedValue]);
 
   const parseCurrency = (value) =>
-    value ? parseInt(value.replace(/\./g, "").replace("đ", "").trim()) : "0";
+    parseInt(value.replace(/\./g, "").replace("đ", "").trim());
 
-  // Dữ liệu tùy chọn (Chi tiền, Thu tiền)
+  // Dữ liệu tùy chọn (Dự chi, Dự thu)
   const options = [
     {
       key: "1",
-      label: "Chi tiền",
+      label: "Dự chi",
       icon: "remove-circle-outline",
       color: "red",
     },
-    { key: "2", label: "Thu tiền", icon: "add-circle-outline", color: "green" },
+    { key: "2", label: "Dự thu", icon: "add-circle-outline", color: "green" },
   ];
+
+  // Hàm chuyển đổi trạng thái Modal tùy chọn
+  const toggleModal = useCallback(
+    () => setModalVisible(!isModalVisible),
+    [isModalVisible]
+  );
+
+  const selectOption = useCallback((option) => {
+    setSelectedOption(option.label);
+    setModalVisible(false);
+    setSelectedCategory({
+      id: 0,
+      name: "Chọn hạng mục",
+      icon: "pricetag-outline",
+      iconLib: "Ionicons",
+    });
+  }, []);
 
   // Hàm hiển thị DateTimePicker với mode ngày hoặc giờ
   const showMode = (mode) => {
@@ -109,13 +159,11 @@ function UpdateTransactionScreen({
 
   // Hàm xử lý khi người dùng chọn ngày/giờ
   const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || (pickerMode === "date" ? date : time);
+    const currentDate = selectedDate || date;
     setShowPicker(false);
 
     if (pickerMode === "date") {
       setDate(currentDate); // Cập nhật ngày
-    } else {
-      setTime(currentDate); // Cập nhật giờ
     }
   };
 
@@ -124,33 +172,9 @@ function UpdateTransactionScreen({
     setSelectedCategory(category);
   };
 
-  // Hàm chọn ảnh từ thư viện hoặc camera
-  const handleImageSelection = async (fromCamera) => {
-    const permissionResult = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      alert(
-        `Bạn cần cấp quyền truy cập ${
-          fromCamera ? "camera" : "bộ sưu tập"
-        } để chọn ảnh!`
-      );
-      return;
-    }
-
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({
-          allowsEditing: false,
-          quality: 1,
-        })
-      : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: false,
-          quality: 1,
-        });
-
-    if (!result.canceled) setSelectedImage(result.assets[0].uri);
+  // func handle account
+  const handleAccountSelect = (account) => {
+    setSelectedAccount(account);
   };
 
   const handleFocus = () => {
@@ -166,10 +190,6 @@ function UpdateTransactionScreen({
       setSelection(null);
     }
   };
-
-  const openImagePicker = () => handleImageSelection(false);
-  const openCamera = () => handleImageSelection(true);
-  const removeImage = () => setSelectedImage(null);
 
   // convert date +7 UTC to local time
   const getDateAndTime = (dateObj) => {
@@ -192,52 +212,26 @@ function UpdateTransactionScreen({
   };
 
   const prepareTransactionData = () => ({
-    id: data.id,
+    id: datas.id,
     amount: parseCurrency(amount),
-    date: `${getDateAndTime(addHours(date, 0)).date} ${
-      getDateAndTime(addHours(time, 0)).time
-    }`,
-    accountId: data.accountId,
+    date: getDateAndTime(addHours(date, 0)).date,
+    accountId: selectedAccount.id,
     categoryId: selectedCategory.id,
-    image: selectedImage,
-    type: selectedOption === "Chi tiền" ? "chi" : "thu",
+    type: selectedOption === "Dự chi" ? "chi" : "thu",
     desc: desc,
+    status: "waiting",
   });
-
-  const handleDataUpdate = (dataOld, accountPrepare) =>
-    dataOld.map((cat) =>
-      cat.id === accountPrepare.id ? { ...cat, ...accountPrepare } : cat
-    );
 
   const handleCreateLoading = async () => {
     const transactionPrepare = prepareTransactionData();
-
     try {
-      const dataOld = await getTransactionData();
-      await saveTransactionData(handleDataUpdate(dataOld, transactionPrepare));
-      await addHandleAsyncData({
-        type: "update",
-        tbl: "transaction",
-        id: transactionPrepare.id,
-        data: transactionPrepare,
-      });
-      if (data.amount - transactionPrepare.amount !== 0) {
-        await addHandleAsyncData({
-          type: "update",
-          tbl: "amount",
-          id: data.accountId,
-          data: {
-            id: data.accountId,
-            amount: data.amount - transactionPrepare.amount,
-          },
-        });
+      const dataOld = await getSpendIncomePlanData();
 
-        await updateAmountById(
-          data.accountId,
-          data.amount - transactionPrepare.amount,
-          "plus"
-        );
-      }
+      // Cập nhật dữ liệu
+      const updatedData = dataOld.map((item) =>
+        item.id === datas.id ? { ...item, ...transactionPrepare } : item
+      );
+      await saveSpendIncomePlanData(updatedData);
       return true;
     } catch (error) {
       console.error("Error creating transaction:", error);
@@ -264,6 +258,14 @@ function UpdateTransactionScreen({
       return;
     }
 
+    if (selectedAccount.id === 0) {
+      Toast.show({
+        type: "error",
+        text1: "Vui lòng chọn tài khoản!",
+      });
+      return;
+    }
+
     // Lưu dữ liệu
     const result = await handleCreateLoading();
 
@@ -272,14 +274,13 @@ function UpdateTransactionScreen({
       Toast.show({
         type: "success",
         text1: "Thành công",
-        text2: "Giao dịch đã được thêm thành công",
+        text2: "Dự thu/dự chi đã được thêm thành công",
       });
 
-      setModalVisibleRemove(false);
+      onReload();
 
       setTimeout(() => {
-        onPressClose();
-        onReload();
+        resetForm();
       }, 1500);
     } else {
       Toast.show({
@@ -290,83 +291,60 @@ function UpdateTransactionScreen({
     }
   };
 
-  const handleDataRemove = async (dataOld, transactionId) => {
-    const index = dataOld.findIndex((item) => item.id === transactionId);
+  const handleDataRemove = (dataOld, alertId) => {
+    const index = dataOld.findIndex((item) => item.id === alertId);
     if (index !== -1) {
       dataOld.splice(index, 1);
     }
     return dataOld;
   };
 
-  const handleRemoving = async (transactionId) => {
-    try {
-      await addHandleAsyncData({
-        type: "delete",
-        tbl: "transaction",
-        id: transactionId,
-      });
-
-      const dataOld = await getTransactionData();
-
-      const storageData = await saveTransactionData(
-        handleDataRemove(dataOld, transactionId)
-      );
-
-      return storageData;
-    } catch (error) {
-      console.error("Error creating account:", error);
-      return false;
-    }
-  };
-
   const handleRemoveConfirm = async () => {
     try {
-      const success = await handleRemoving(data.id);
-      if (success) {
-        Toast.show({
-          type: "success",
-          text1: "Thành công",
-          text2: "Khoản thu chi đã xoá thành công!",
-        });
+      const dataOld = await getSpendIncomePlanData();
 
-        setTimeout(() => {
-          onPressClose();
-          onReload();
-        }, 1500);
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Lỗi",
-          text2: "Xoá thất bại, vui lòng thử lại!",
-        });
-      }
-    } catch (error) {
+      // Cập nhật dữ liệu
+      const updatedData = handleDataRemove(dataOld, datas.id);
+
+      await saveSpendIncomePlanData(updatedData);
+      setModalVisibleRemove(false);
+
       Toast.show({
-        type: "error",
+        text1: "Thành công",
+        text2: "Xóa dự chi/dự thu thành công.",
+        type: "success",
+      });
+
+      onReload();
+
+      setTimeout(() => {
+        resetForm();
+      }, 1500);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      Toast.show({
         text1: "Lỗi",
-        text2: "Đã xảy ra lỗi khi xóa tài khoản. Vui lòng thử lại!",
+        text2: "Không thể xóa dự chi/dự thu.",
+        type: "error",
       });
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          onPress={onPressClose}
-        />
-        <Text style={styles.headerTitle}>Sửa khoản thu chi</Text>
-        <Ionicons
-          name="checkmark"
-          size={24}
-          color="#fff"
-          onPress={handleSave}
-        />
-      </View>
+      <HeaderExpense
+        selectedOption={selectedOption}
+        toggleModal={toggleModal}
+        onConfirm={() => handleSave()}
+        onBackPress={() => onBack()}
+      />
+
+      <OptionModal
+        isVisible={isModalVisible}
+        options={options}
+        toggleModal={toggleModal}
+        selectOption={selectOption}
+      />
 
       <View style={styles.mainContent}>
         <Pressable onPress={Keyboard.dismiss}>
@@ -379,7 +357,7 @@ function UpdateTransactionScreen({
                 onChangeText={handleChangeText}
                 onFocus={handleFocus}
                 selection={selection}
-                color={selectedOption === "Chi tiền" ? "red" : "green"}
+                color={selectedOption === "Dự chi" ? "red" : "green"}
                 keyboardType="numeric"
               />
               <Text style={styles.moneyInputCurrency}>đ</Text>
@@ -404,22 +382,12 @@ function UpdateTransactionScreen({
                   {date.toLocaleDateString("vi-VN")}
                 </Text>
               </TouchableOpacity>
-
-              {/* Chọn Giờ */}
-              <TouchableOpacity onPress={() => showMode("time")}>
-                <Text style={styles.transactionValue}>
-                  {time.toLocaleTimeString("vi-VN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </TouchableOpacity>
             </View>
 
             {/* Hiển thị DateTimePicker nếu showPicker là true */}
             {showPicker && (
               <DateTimePicker
-                value={pickerMode === "date" ? date : time}
+                value={date}
                 mode={pickerMode}
                 is24Hour={true}
                 display="default"
@@ -427,6 +395,36 @@ function UpdateTransactionScreen({
               />
             )}
           </View>
+
+          <View style={styles.transactionDivider} />
+
+          {/* Tài khoản */}
+          <TouchableOpacity
+            style={styles.transactionRow}
+            onPress={() => setModalVisibleAcc(true)}
+          >
+            {selectedAccount.type === "cash" ? (
+              <Ionicons
+                name="cash-outline"
+                size={24}
+                color="#333"
+                style={styles.transactionIcon}
+              />
+            ) : (
+              <FontAwesome
+                name="bank"
+                size={24}
+                color="#333"
+                style={styles.transactionIcon}
+              />
+            )}
+            <View style={styles.transactionContent}>
+              <Text style={styles.transactionLabel}>
+                {selectedAccount.name}
+              </Text>
+              <Ionicons name="chevron-forward" size={20} color="#aaa" />
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.transactionDivider} />
 
@@ -461,30 +459,6 @@ function UpdateTransactionScreen({
             />
           </View>
 
-          {/* Thêm hoặc hiển thị ảnh */}
-          {selectedImage ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: selectedImage }} style={styles.image} />
-              <TouchableOpacity
-                style={styles.removeImageButton}
-                onPress={removeImage}
-              >
-                <AntDesign name="closecircle" size={24} color="red" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={openImagePicker}>
-                <FontAwesome name="photo" size={35} color="#808080" />
-              </TouchableOpacity>
-              <View style={styles.dividerVertical} />
-              <TouchableOpacity style={styles.button} onPress={openCamera}>
-                <Ionicons name="camera-outline" size={35} color="#808080" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Nút hành động */}
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={styles.deleteButton}
@@ -503,6 +477,22 @@ function UpdateTransactionScreen({
           </View>
         </Pressable>
       </View>
+
+      {/* Modal Accounts */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisibleAcc}
+        onRequestClose={() => setModalVisibleAcc(false)}
+      >
+        <AccountAdd
+          onBack={() => {
+            setModalVisibleAcc(false);
+          }}
+          selectedAccount={selectedAccount}
+          handleAccountSelect={handleAccountSelect}
+        />
+      </Modal>
 
       {/* Modal Category */}
       <Modal
@@ -538,20 +528,23 @@ function UpdateTransactionScreen({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-
-  header: {
+  headerContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     backgroundColor: "#009fda",
     paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  headerTitle: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
+  headerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#5cc0ff",
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    borderRadius: 20,
   },
+  headerButtonText: { color: "white", fontSize: 16, marginRight: 5 },
   mainContent: { flex: 1 },
   moneyInputContainer: { margin: 15 },
   moneyInputLabel: { fontSize: 16, color: "#333", textAlign: "right" },
@@ -614,29 +607,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     paddingVertical: 5,
   },
-  imageContainer: {
-    position: "relative",
-    marginHorizontal: 20,
-    marginTop: 15,
-  },
-  image: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    objectFit: "contain",
-  },
-  removeImageButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "white",
-    borderRadius: 12,
-  },
   actionButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 30,
-    marginHorizontal: 20,
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
   deleteButton: {
     flexDirection: "row",
@@ -674,5 +649,3 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
 });
-
-export default UpdateTransactionScreen;

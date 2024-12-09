@@ -30,9 +30,10 @@ const PrivacyPolicyScreen = ({ onBack = () => {} }) => {
         <Text style={styles.subHeader}>Thu thập và Sử dụng Thông tin</Text>
         <Text style={styles.text}>
           Ứng dụng Money Care không thu thập bất kỳ thông tin cá nhân nào của
-          bạn. Tất cả các hoạt động trong ứng dụng đều diễn ra trên thiết bị của
-          bạn, và dữ liệu của bạn sẽ không được gửi hoặc lưu trữ trên bất kỳ máy
-          chủ nào.
+          bạn. Tất cả các dữ liệu và hoạt động trong ứng dụng đều diễn ra trên
+          thiết bị của bạn. Việc đồng bộ hóa lên máy chủ chỉ phục vụ mục đích
+          lưu trữ và sao lưu dữ liệu của bạn một cách an toàn, đảm bảo bạn có
+          thể truy cập dữ liệu khi cần mà không ảnh hưởng đến quyền riêng tư.
         </Text>
 
         <Text style={styles.subHeader}>Dữ liệu Nhật ký</Text>

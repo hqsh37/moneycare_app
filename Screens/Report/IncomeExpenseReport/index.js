@@ -291,7 +291,7 @@ const IncomeExpenseReport = ({ onBack }) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tình hình thu chi</Text>
           <TouchableOpacity style={styles.shareButton}>
-            <Icon name="share-social-outline" size={24} color="#fff" />
+            <Icon name="information-circle-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
         {/* Tabs */}

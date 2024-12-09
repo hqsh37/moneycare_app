@@ -4,10 +4,10 @@
     "slug": "MoneyCare_ui",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/image/mini-logo.png",
+    "icon": "./assets/image/logo-icon-only.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/image/logo.png",
+      "image": "./assets/image/logo-icon-only.png",
       "backgroundColor": "#ffffff"
     },
     "ios": {
@@ -21,13 +21,13 @@
         "READ_EXTERNAL_STORAGE"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/image/logo.png",
+        "foregroundImage": "./assets/image/logo-icon-only.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.hqsh37.MoneyCare_ui"
     },
     "web": {
-      "favicon": "./assets/image/mini-logo.png"
+      "favicon": "./assets/image/logo-icon-only.png"
     },
     "extra": {
       "eas": {

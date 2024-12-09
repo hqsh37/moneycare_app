@@ -7,13 +7,13 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
 import AddReminderModal from "./AddReminderModal";
 import {
   saveReminderData,
   getReminderData,
 } from "../../../stores/reminderStorage";
 import * as Notifications from "expo-notifications";
+import Icon from "../../../components/Icon";
 
 const ReminderScreen = ({ onBack = () => {} }) => {
   const [reminders, setReminders] = useState([]); // List of reminders
@@ -170,7 +170,12 @@ const ReminderScreen = ({ onBack = () => {} }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}>
-          <Icon name="arrow-back-outline" size={24} color="#fff" />
+          <Icon
+            iconLib="Ionicons"
+            icon="arrow-back-outline"
+            size={24}
+            color="#fff"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lời nhắc nhở</Text>
         <View />
@@ -179,7 +184,12 @@ const ReminderScreen = ({ onBack = () => {} }) => {
       {/* Content */}
       {reminders.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="document-outline" size={60} color="#666" />
+          <Icon
+            iconLib="Ionicons"
+            icon="document-outline"
+            size={60}
+            color="#666"
+          />
           <Text style={styles.emptyText}>Chưa có dữ liệu</Text>
         </View>
       ) : (
@@ -201,7 +211,12 @@ const ReminderScreen = ({ onBack = () => {} }) => {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => deleteReminder(item.id)}>
-                <Icon name="trash-outline" size={24} color="#FF0000" />
+                <Icon
+                  iconLib="Ionicons"
+                  icon="trash-outline"
+                  size={24}
+                  color="#FF0000"
+                />
               </TouchableOpacity>
             </View>
           )}

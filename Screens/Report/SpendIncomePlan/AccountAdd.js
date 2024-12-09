@@ -8,10 +8,10 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
-import Icon from "../../components/Icon";
-import { getAccountData } from "./../../stores/accountStorage";
-import { checkNetworkStatus } from "../../services/asyncDataCloud";
-import { asyncDataCloud } from "../../handlers/dataAsyncHandle";
+import Icon from "../../../components/Icon";
+import { getAccountData } from "./../../../stores/accountStorage";
+import { checkNetworkStatus } from "../../../services/asyncDataCloud";
+import { asyncDataCloud } from "../../../handlers/dataAsyncHandle";
 
 const AccountAdd = ({
   selectedAccount,

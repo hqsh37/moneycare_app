@@ -33,6 +33,7 @@ const ExpenseAnalysis = ({ onBack }) => {
     type: "cash",
   });
   const [cash, setCash] = useState(0);
+  const [numberOfTimes, setNumberOfTimes] = useState(0);
   const [dataChart, setdataChart] = useState([{ date: "", amount: 0 }]);
 
   // Visible toggle modal
@@ -53,6 +54,24 @@ const ExpenseAnalysis = ({ onBack }) => {
     setStartDate(startOfMonth);
     setEndDate(endOfMonth);
   }, []);
+
+  useEffect(() => {
+    setNumberOfTimes(calculateDaysBetweenTime(startDate, endDate));
+  });
+
+  function calculateDaysBetweenTime(startTime, endTime) {
+    // Chuyển đổi chuỗi thời gian thành đối tượng Date
+    const dateStart = new Date(startTime);
+    const dateEnd = new Date(endTime);
+
+    // Tính sự chênh lệch giữa hai thời điểm (tính bằng milisecond)
+    const timeDifference = dateEnd - dateStart;
+
+    // Chuyển đổi chênh lệch thời gian từ milisecond sang ngày
+    const daysDifference = timeDifference / (1000 * 3600 * 24); // 1000 ms = 1s, 3600 s = 1h, 24h = 1 ngày
+
+    return daysDifference;
+  }
 
   useEffect(() => {
     handleLoadData();
@@ -394,7 +413,7 @@ const ExpenseAnalysis = ({ onBack }) => {
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Trung bình chi/ngày</Text>
             <Text style={styles.summaryValue}>
-              {formatCurrencyVND(cash / +dataChart.length + "")}
+              {formatCurrencyVND(cash / numberOfTimes + "")}
             </Text>
           </View>
         </View>
@@ -418,7 +437,7 @@ const ExpenseAnalysis = ({ onBack }) => {
         <TouchableOpacity style={styles.shareButton}>
           <Icon
             iconLib="Ionicons"
-            icon="share-social-outline"
+            icon="information-circle-outline"
             size={24}
             color="#fff"
           />

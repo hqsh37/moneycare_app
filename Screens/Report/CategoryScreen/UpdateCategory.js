@@ -51,8 +51,8 @@ function UpdateCategory({
   const [categoryParents, setCategoryParents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [categoryDesc, setCategoryDesc] = useState(item.desc);
-  const [action, setAtion] = useState("update");
 
+  const iscateDefault = item?.cateDefault || false;
   useEffect(() => {
     const loadData = async () => {
       if (tab === "chi") {
@@ -309,9 +309,13 @@ function UpdateCategory({
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
-        <TouchableOpacity onPress={() => handleSave()}>
-          <Ionicons name="checkmark" size={24} color="#fff" />
-        </TouchableOpacity>
+        {iscateDefault ? (
+          <View />
+        ) : (
+          <TouchableOpacity onPress={() => handleSave()}>
+            <Ionicons name="checkmark" size={24} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Chọn icon */}
@@ -375,26 +379,30 @@ function UpdateCategory({
         </View>
 
         {/* Nút hành động */}
-        <View style={styles.actionButtons}>
-          {isParent ? (
+        {!iscateDefault ? (
+          <View style={styles.actionButtons}>
+            {isParent && (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => setModalVisibleRemove(true)}
+              >
+                <Icon iconLib="Ionicons" icon="trash" size={24} color="red" />
+                <Text style={styles.deleteText}>Xóa</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => setModalVisibleRemove(true)}
+              style={styles.saveButton}
+              onPress={() => handleSave()}
             >
-              <Icon iconLib="Ionicons" icon="trash" size={24} color="red" />
-              <Text style={styles.deleteText}>Xóa</Text>
+              <Icon iconLib="Ionicons" icon="save" size={24} color="#fff" />
+              <Text style={styles.saveText}>Lưu</Text>
             </TouchableOpacity>
-          ) : (
-            <></>
-          )}
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={() => handleSave()}
-          >
-            <Icon iconLib="Ionicons" icon="save" size={24} color="#fff" />
-            <Text style={styles.saveText}>Lưu</Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+        ) : (
+          <Text style={styles.caption}>
+            * Đây là hạng mục mặc định không thể sửa
+          </Text>
+        )}
       </View>
       {/* Modal category */}
       <Modal
@@ -540,7 +548,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     paddingVertical: 5,
   },
-
   actionButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -574,6 +581,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 5,
     fontSize: 16,
+  },
+  caption: {
+    fontSize: 14,
+    marginTop: 5,
+    color: "gray",
   },
 });
 

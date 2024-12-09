@@ -31,6 +31,8 @@ import { addHandleAsyncData } from "../../../services/asyncData";
 import { useDebounce } from "../../../hooks";
 import DetailAccountScreen from "./DetailAccountScreen";
 import SpendingAlert from "./SpendingAlert";
+import { isAccountInTransactions } from "../../../stores/transactionStorage";
+import { isAccountInSavings } from "../../../stores/savingStorage";
 
 const SubAccount = ({ textSearch = "" }) => {
   const [accounts, setAccounts] = useState([]);
@@ -151,6 +153,29 @@ const SubAccount = ({ textSearch = "" }) => {
 
   const handleRemoving = async (accountId) => {
     try {
+      const isAvailableinTransactions = await isAccountInTransactions(
+        accountId
+      );
+      const isAvailableinSavings = await isAccountInSavings(accountId);
+
+      if (isAvailableinTransactions) {
+        Toast.show({
+          type: "error",
+          text1: "Thông báo",
+          text2: "Tài khoản đang có giao dịch, không thể xoá!",
+        });
+        return false;
+      }
+
+      if (isAvailableinSavings) {
+        Toast.show({
+          type: "error",
+          text1: "Thông báo",
+          text2: "Tài khoản đang sử dụng sổ tiết kiệm, không thể xoá!",
+        });
+        return false;
+      }
+
       await addHandleAsyncData({
         type: "delete",
         tbl: "account",
@@ -189,12 +214,6 @@ const SubAccount = ({ textSearch = "" }) => {
           (account) => account.id !== acctionAccount.id
         );
         setAccounts(updatedAccounts);
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Lỗi",
-          text2: "Xoá thất bại, vui lòng thử lại!",
-        });
       }
     } catch (error) {
       Toast.show({

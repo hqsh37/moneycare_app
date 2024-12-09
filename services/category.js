@@ -95,6 +95,7 @@ export const convertCategoriesWithReplace = (data) => {
             iconLib: item.iconlib,
             hanmuccha: hanmuccha,
             ReplaceId: item.id,
+            cateDefault: item.id_user == 0,
           };
         } else {
           itemMap[mapType][targetId] = { ...item };
@@ -108,6 +109,7 @@ export const convertCategoriesWithReplace = (data) => {
         icon: item.icon,
         iconLib: item.iconlib,
         hanmuccha: hanmuccha,
+        cateDefault: item.id_user == 0,
       };
     }
   });

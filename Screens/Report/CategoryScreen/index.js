@@ -60,6 +60,7 @@ const CategoryScreen = ({ onBack }) => {
       await asyncData();
       // Tải dữ liệu chi tiêu (Spend)
       const dataSpendLocal = await getCategorySpend();
+
       if (dataSpendLocal.length === 0) {
         console.log("Dữ liệu chi tiêu chưa có, lưu dữ liệu mẫu");
         await saveCategorySpend(categorySpend);

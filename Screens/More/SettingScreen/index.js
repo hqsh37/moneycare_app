@@ -7,13 +7,13 @@ import {
   FlatList,
   Modal,
 } from "react-native";
-import { Alert } from "react-native";
 import Icon from "../../../components/Icon";
 import PrivacyPolicyScreen from "./PrivacyPolicyScreen";
 import TermsAndConditionScreen from "./TermsAndConditionScreen";
 import InfoUsScreen from "./InfoUsScreen";
 import ChangePasswordScreen from "./ChangePasswordScreen";
 import ReminderScreen from "./ReminderScreen";
+import FeedbackModal from "./FeedbackModal";
 
 const SettingScreen = ({ onBack = () => {} }) => {
   const [modalVisiblePolicy, setModalVisiblePolicy] = useState(false);
@@ -21,6 +21,7 @@ const SettingScreen = ({ onBack = () => {} }) => {
   const [modalVisibleInfo, setModalVisibleInfo] = useState(false);
   const [modalVisibleChangePass, setModalVisibleChangePass] = useState(false);
   const [modalVisibleReminder, setModalVisibleReminder] = useState(false);
+  const [modalVisibleFeedback, setModalVisibleFeedback] = useState(false);
 
   const menuItems = [
     {
@@ -57,7 +58,7 @@ const SettingScreen = ({ onBack = () => {} }) => {
       id: "6",
       title: "Nhận xét",
       icon: "chatbubble-ellipses-outline", // Biểu tượng nhận xét/chat
-      onPress: () => Alert.alert("Nhận xét", "Gửi nhận xét của bạn."),
+      onPress: () => setModalVisibleFeedback(true),
     },
   ];
 
@@ -142,6 +143,16 @@ const SettingScreen = ({ onBack = () => {} }) => {
         onRequestClose={() => setModalVisibleReminder(false)}
       >
         <ReminderScreen onBack={() => setModalVisibleReminder(false)} />
+      </Modal>
+
+      {/* Modal Feedback*/}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisibleFeedback}
+        onRequestClose={() => setModalVisibleFeedback(false)}
+      >
+        <FeedbackModal onBack={() => setModalVisibleFeedback(false)} />
       </Modal>
     </View>
   );

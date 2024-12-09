@@ -71,7 +71,7 @@ const Sitemap = ({ onBack = () => {} }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Site Map</Text>
         <TouchableOpacity style={styles.shareButton}>
-          <Icon name="share-social-outline" size={24} color="#fff" />
+          <Icon name="information-circle-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f4f4f9", // Light background color
   },
   header: {
-    backgroundColor: "#3b9fdb", // Blue header background
+    backgroundColor: "#009fda", // Blue header background
     padding: 15,
     flexDirection: "row",
     alignItems: "center",

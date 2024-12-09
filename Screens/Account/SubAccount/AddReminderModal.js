@@ -42,6 +42,12 @@ const AddReminderModal = ({ visible, onClose, onAdd, idAccount }) => {
         content,
       });
 
+      setTitle("Cảnh báo chi tiêu");
+      setAmount("");
+      setContent(
+        "Bạn đã vượt quá hạn mức chi tiêu được đặt ra. Vui lòng kiểm tra và điều chỉnh chi tiêu của mình để tránh các rủi ro tài chính."
+      );
+
       onClose();
     }
   };

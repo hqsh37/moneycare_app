@@ -11,6 +11,7 @@ import Toast from "react-native-toast-message";
 import VerificationScreen from "./VerificationScreen";
 import Loading from "../../../components/Loading";
 import { forgotAuth } from "../../../services/auth";
+import { checkNetworkStatus } from "../../../services/asyncDataCloud";
 
 const ForgotPass = ({ onBack }) => {
   const [email, setEmail] = useState("");
@@ -19,7 +20,17 @@ const ForgotPass = ({ onBack }) => {
 
   const handleVerification = async () => {
     setISLoading(true);
-    const result = await forgotAuth(email);
+    const isConnected = await checkNetworkStatus();
+    if (!isConnected) {
+      setISLoading(false);
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Vui lòng kiểm tra kết nối mạng để đăng ký.",
+      });
+      return;
+    }
+    const result = await forgotAuth(email.toLocaleLowerCase());
     setISLoading(false);
     if (result) {
       setISEmail(true);
@@ -27,7 +38,7 @@ const ForgotPass = ({ onBack }) => {
       Toast.show({
         type: "error",
         text1: "Lỗi",
-        text2: "Đã xảy ra lỗi, vui lòng thử lại sau.",
+        text2: "Email chưa được đăng ký, vui lòng tạo tài khoản để sử dụng",
       });
     }
   };

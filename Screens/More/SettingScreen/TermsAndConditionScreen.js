@@ -30,10 +30,11 @@ const TermsAndConditionScreen = ({ onBack = () => {} }) => {
 
         <Text style={styles.sectionTitle}>2. Cam kết và trách nhiệm</Text>
         <Text style={styles.text}>
-          Moneycare cam kết đảm bảo rằng ứng dụng luôn hữu ích và hiệu quả nhất
-          có thể. Chúng tôi có quyền thay đổi ứng dụng hoặc tính phí dịch vụ bất
-          kỳ lúc nào và vì bất kỳ lý do gì. Tuy nhiên, chúng tôi sẽ luôn thông
-          báo rõ ràng về bất kỳ khoản phí nào trước khi bạn thanh toán.
+          <Text style={styles.bold}>Moneycare</Text> cam kết đảm bảo rằng ứng
+          dụng luôn hữu ích và hiệu quả nhất có thể. Ứng dụng hoàn toàn miễn phí
+          và chúng tôi không có dự định áp dụng bất kỳ khoản phí nào trong tương
+          lai. Bạn có thể yên tâm sử dụng các dịch vụ mà không lo ngại về chi
+          phí.
         </Text>
 
         <Text style={styles.sectionTitle}>

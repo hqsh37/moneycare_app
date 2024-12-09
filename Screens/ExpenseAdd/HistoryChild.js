@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import Icon from "../../components/Icon";
 import UpdateTransactionScreen from "./UpdateTransactionScreen";
-const HistoryChild = ({ data, selectedItem = () => {} }) => {
+const HistoryChild = ({ data, onReload = () => {} }) => {
   const [selectedTransaction, setSelectedTransaction] = useState({});
   const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
   // Render mỗi mục giao dịch
@@ -83,6 +83,7 @@ const HistoryChild = ({ data, selectedItem = () => {} }) => {
       >
         <UpdateTransactionScreen
           onPressClose={() => setModalVisibleUpdate(false)}
+          onReload={() => onReload()}
           data={selectedTransaction}
         />
       </Modal>

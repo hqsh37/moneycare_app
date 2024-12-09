@@ -53,7 +53,12 @@ const FinancialReport = ({ onBack }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tài chính hiện tại</Text>
         <TouchableOpacity style={styles.menuButton}>
-          <Ionicons name="chevron-down-outline" size={24} color="#fff" />
+          <Icon
+            iconLib="Ionicons"
+            icon="information-circle-outline"
+            size={24}
+            color="#fff"
+          />
         </TouchableOpacity>
       </View>
 
@@ -71,8 +76,9 @@ const FinancialReport = ({ onBack }) => {
         <View style={styles.assetItem}>
           <Ionicons name="wallet-outline" size={24} color="#FFA500" />
           <Text style={styles.assetText}>Tiền mặt</Text>
-          <Text style={styles.assetValue}>{formatCurrency(sumCash + "")}</Text>
-          <Ionicons name="chevron-forward-outline" size={24} color="#A9A9A9" />
+          <Text style={styles.assetValue}>
+            {formatCurrency(sumCash + "")} đ
+          </Text>
         </View>
 
         <View style={styles.assetItem}>
@@ -81,7 +87,6 @@ const FinancialReport = ({ onBack }) => {
           <Text style={styles.assetValue}>
             {formatCurrency(savingsAmount + "")} đ
           </Text>
-          <Ionicons name="chevron-forward-outline" size={24} color="#A9A9A9" />
         </View>
       </View>
     </View>

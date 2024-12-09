@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import Icon from "../../../components/Icon";
 import HistoryChild from "../../ExpenseAdd/HistoryChild";
@@ -17,16 +18,22 @@ function DetailAccountScreen({
   onBack = () => {},
 }) {
   const [viewDatas, setViewDatas] = useState({});
+  const [refreshing, setRefreshing] = useState(false); // Trạng thái làm mới
 
   useEffect(() => {
-    const testfunc = async () => {
-      const data = await convertDataTransaction(id, type);
-
-      setViewDatas(data);
-    };
-
-    testfunc();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    const data = await convertDataTransaction(id, type);
+    setViewDatas(data);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true); // Bắt đầu trạng thái làm mới
+    await loadData(); // Tải lại dữ liệu
+    setRefreshing(false); // Kết thúc trạng thái làm mới
+  };
 
   const formatCurrencyVND = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -49,21 +56,26 @@ function DetailAccountScreen({
         <View style={styles.section}>
           <Text style={styles.title}>Tổng thu</Text>
           <Text style={[styles.amount, styles.income]}>
-            {formatCurrencyVND(viewDatas.sumColect)}
+            {formatCurrencyVND(viewDatas.sumColect ?? 0)}
           </Text>
         </View>
         {/* Tổng chi */}
         <View style={styles.section}>
           <Text style={styles.title}>Tổng chi</Text>
           <Text style={[styles.amount, styles.expense]}>
-            {formatCurrencyVND(viewDatas.sumSpend)}
+            {formatCurrencyVND(viewDatas.sumSpend ?? 0)}
           </Text>
         </View>
       </View>
       <FlatList
         data={viewDatas.transactions}
-        renderItem={({ item }) => <HistoryChild data={item} />}
+        renderItem={({ item }) => (
+          <HistoryChild data={item} onReload={() => loadData()} />
+        )}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

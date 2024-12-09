@@ -51,7 +51,7 @@ export default function Signup({ onBack }) {
       });
       return false;
     }
-    if (password.length < 6) {
+    if (password.trim().length < 6) {
       Toast.show({
         type: "error",
         text1: "Lỗi",
@@ -65,8 +65,22 @@ export default function Signup({ onBack }) {
   const handleSignup = async () => {
     const isConnected = await checkNetworkStatus();
 
-    if (validateInput() && isConnected) {
-      const result = await registerAuth(email, password, fisrtName, lastName);
+    if (validateInput()) {
+      if (!isConnected) {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Vui lòng kiểm tra kết nối mạng để đăng ký.",
+        });
+        return;
+      }
+
+      const result = await registerAuth(
+        email.toLocaleLowerCase(),
+        password,
+        fisrtName,
+        lastName
+      );
 
       if (result === 201) {
         Toast.show({
@@ -102,12 +116,6 @@ export default function Signup({ onBack }) {
           text2: "Đã xảy ra lôi khi đăng ký. Vui lòng thử lại!",
         });
       }
-    } else {
-      Toast.show({
-        type: "error",
-        text1: "Lỗi",
-        text2: "Vui lòng kiểm tra kết nối mạng để đăng ký.",
-      });
     }
   };
 
