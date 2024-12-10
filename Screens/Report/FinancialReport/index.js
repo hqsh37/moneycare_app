@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "../../../components/Icon";
 import { getAccountData } from "../../../stores/accountStorage";
@@ -45,6 +45,13 @@ const FinancialReport = ({ onBack }) => {
     return isNaN(number) ? "0" : number.toLocaleString("vi-VN");
   };
 
+  const handleAlert = () => {
+    Alert.alert(
+      "Mô tả",
+      "Hiển thị tổng quan về tình hình tài chính cá nhân của bạn. Bao gồm số dư chi tiết trong các ví như tiền mặt, tài khoản ngân hàng, hoặc ví điện tử. Giúp bạn dễ dàng theo dõi tài sản hiện có và quản lý chúng hiệu quả."
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -52,7 +59,10 @@ const FinancialReport = ({ onBack }) => {
           <Icon icon="arrow-back" iconLib="Ionicons" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tài chính hiện tại</Text>
-        <TouchableOpacity style={styles.menuButton}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => handleAlert()}
+        >
           <Icon
             iconLib="Ionicons"
             icon="information-circle-outline"

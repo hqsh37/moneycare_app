@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
@@ -62,6 +63,13 @@ const Sitemap = ({ onBack = () => {} }) => {
     }
   };
 
+  const handleAlert = () => {
+    Alert.alert(
+      "Mô tả",
+      "Một bản đồ trực quan về các chức năng chính trong ứng dụng. Giúp người dùng dễ dàng tìm kiếm và truy cập nhanh đến các tính năng quan trọng, tiết kiệm thời gian khi sử dụng ứng dụng."
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -70,7 +78,10 @@ const Sitemap = ({ onBack = () => {} }) => {
           <Icon name="arrow-back-outline" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Site Map</Text>
-        <TouchableOpacity style={styles.shareButton}>
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={() => handleAlert()}
+        >
           <Icon name="information-circle-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>

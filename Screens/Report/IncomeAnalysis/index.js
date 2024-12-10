@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LineChart } from "react-native-chart-kit";
@@ -248,6 +249,13 @@ const IncomeAnalysis = ({ onBack }) => {
     }).format(amount);
   };
 
+  const handleAlert = () => {
+    Alert.alert(
+      "Mô tả",
+      "Phân tích chi tiết các nguồn thu nhập, bao gồm lương, tiền thưởng, lợi nhuận đầu tư, và các khoản thu khác. Hỗ trợ bạn xác định nguồn thu nào chiếm tỷ trọng lớn nhất và đưa ra các quyết định tài chính sáng suốt."
+    );
+  };
+
   // Hàm để render nội dung dựa trên tab được chọn
   const renderContent = () => {
     return (
@@ -434,7 +442,10 @@ const IncomeAnalysis = ({ onBack }) => {
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Phân tích thu</Text>
-        <TouchableOpacity style={styles.shareButton}>
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={() => handleAlert()}
+        >
           <Icon
             iconLib="Ionicons"
             icon="information-circle-outline"

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LineChart } from "react-native-chart-kit";
@@ -248,6 +249,13 @@ const ExpenseAnalysis = ({ onBack }) => {
     }).format(amount);
   };
 
+  const handleAlert = () => {
+    Alert.alert(
+      "Mô tả",
+      "Cung cấp báo cáo chi tiết về các khoản chi tiêu, được phân loại theo từng hạng mục như ăn uống, mua sắm, đi lại, và nhiều hơn nữa. Hiển thị dữ liệu dưới dạng biểu đồ trực quan, giúp bạn hiểu rõ xu hướng và mức độ chi tiêu của mình."
+    );
+  };
+
   // Hàm để render nội dung dựa trên tab được chọn
   const renderContent = () => {
     return (
@@ -434,7 +442,10 @@ const ExpenseAnalysis = ({ onBack }) => {
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Phân tích chi tiêu</Text>
-        <TouchableOpacity style={styles.shareButton}>
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={() => handleAlert()}
+        >
           <Icon
             iconLib="Ionicons"
             icon="information-circle-outline"

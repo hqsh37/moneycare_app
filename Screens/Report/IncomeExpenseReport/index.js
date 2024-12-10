@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Dimensions,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { LineChart } from "react-native-chart-kit";
@@ -239,6 +240,13 @@ const IncomeExpenseReport = ({ onBack }) => {
     setShowYearPicker(false);
   };
 
+  const handleAlert = () => {
+    Alert.alert(
+      "Mô tả",
+      "Tổng hợp toàn bộ các khoản thu nhập và chi tiêu trong một khoảng thời gian nhất định. Hiển thị sự chênh lệch giữa thu và chi, giúp bạn đánh giá tình trạng tài chính hiện tại và lập kế hoạch quản lý chi tiêu hiệu quả hơn."
+    );
+  };
+
   const renderContent = () => {
     if (!chartData || chartData.labels.length === 0) {
       return (
@@ -290,7 +298,10 @@ const IncomeExpenseReport = ({ onBack }) => {
             <Icon name="arrow-back-outline" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tình hình thu chi</Text>
-          <TouchableOpacity style={styles.shareButton}>
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={() => handleAlert()}
+          >
             <Icon name="information-circle-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>

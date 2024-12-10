@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { getTimestamps } from "../../../stores/Timestamp";
+import { createFeedback } from "../../../services/feedback";
+import { checkNetworkStatus } from "../../../services/asyncDataCloud";
 
 const FeedbackModal = ({ onBack = () => {} }) => {
   const [title, setTitle] = useState("");
@@ -36,16 +39,43 @@ const FeedbackModal = ({ onBack = () => {} }) => {
       });
       return;
     }
-    console.log("Title:", title);
-    console.log("Content:", content);
+    sendFeedback();
+  };
 
-    Toast.show({
-      type: "success",
-      text1: "Gửi nhận xét thành công!",
-    });
-    setTitle("");
-    setContent("");
-    onBack();
+  const sendFeedback = async () => {
+    const isConnected = await checkNetworkStatus();
+
+    if (isConnected) {
+      const user = await getTimestamps();
+      let mail = user?.email ?? "";
+
+      const result = await createFeedback(mail, title, content);
+
+      if (result) {
+        Toast.show({
+          type: "success",
+          text1: "Gửi nhận xét thành công!",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Gửi nhận xét thất bại!",
+        });
+      }
+
+      setTimeout(() => {
+        setTitle("");
+        setContent("");
+        onBack();
+      }, 1500);
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Vui lòng kiểm tra kết nối mạng và thử lại.",
+      });
+    }
   };
 
   return (
