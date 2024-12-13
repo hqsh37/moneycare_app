@@ -302,7 +302,7 @@ export default function SpendIncomePlanAdd({
                 color={selectedOption === "Dự chi" ? "red" : "green"}
                 keyboardType="numeric"
               />
-              <Text style={styles.moneyInputCurrency}>đ</Text>
+              <Text style={styles.moneyInputCurrency}>₫</Text>
             </View>
             <View style={styles.moneyInputUnderline} />
           </View>

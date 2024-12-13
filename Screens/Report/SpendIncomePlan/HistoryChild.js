@@ -10,8 +10,6 @@ import {
 import Icon from "../../../components/Icon";
 import SpendIncomePlanUpdate from "./SpendIncomePlanUpdate";
 import ConfirmationModal from "../../../components/ConfirmationModal";
-import { getSpendingAlertData } from "../../../stores/spendingAlertStorage";
-import { sendNotification } from "../../../utils/sendNotification";
 import {
   getTransactionData,
   saveTransactionData,

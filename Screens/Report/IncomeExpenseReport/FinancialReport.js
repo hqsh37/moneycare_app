@@ -4,7 +4,7 @@ import { View, Text, FlatList, StyleSheet, SafeAreaView } from "react-native";
 const FinancialReport = ({ data }) => {
   // Helper function to format currency
   const formatCurrency = (value) => {
-    return value ? parseInt(value, 10).toLocaleString("vi-VN") + " đ" : "0 đ";
+    return value ? parseInt(value, 10).toLocaleString("vi-VN") + " ₫" : "0 ₫";
   };
 
   const renderItem = ({ item }) => {

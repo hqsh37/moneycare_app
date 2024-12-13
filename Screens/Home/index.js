@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  Alert,
+  RefreshControl,
+} from "react-native";
 import Feathericon from "react-native-vector-icons/Feather";
 
 import ButtonAdd from "../../components/ButtonAdd";
@@ -13,18 +21,25 @@ import Loading from "../../components/Loading";
 import DonutChartAuto from "../../components/DonutChartAuto";
 import { getSavingsData } from "../../stores/savingStorage";
 import Icon from "../../components/Icon";
+import { getConfigData, updateConfigData } from "../../stores/configStorage";
 
 const Home = () => {
-  const [hideCash, setHidecash] = useState(false);
+  const [hideCash, setHidecash] = useState(true);
   const [name, setName] = useState("bạn");
   const [sumCash, setSumCash] = useState(0);
   const [dataChart, setDataChart] = useState([0, 0]);
   const [dataDonut, setDataDonut] = useState([{ label: "Trống", value: 1 }]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     getdata();
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    getdata();
+  };
 
   const getdata = async () => {
     setIsLoading(true);
@@ -33,6 +48,13 @@ const Home = () => {
 
     const accountDatas = await getAccountData();
     const savingDatas = await getSavingsData();
+    const config = await getConfigData();
+
+    if (config?.hideCash) {
+      setHidecash(true);
+    } else {
+      setHidecash(false);
+    }
 
     if (accountDatas.length > 0) {
       // Tính tổng số tiền chỉ một lần
@@ -98,6 +120,7 @@ const Home = () => {
       setDataChart([0, 0]);
     }
     setIsLoading(false);
+    setRefreshing(false);
   };
 
   const formatCurrencyVND = (amount) => {
@@ -117,8 +140,19 @@ const Home = () => {
     }
   };
 
+  const hanldeHideCash = async () => {
+    setHidecash(!hideCash);
+    await updateConfigData({ hideCash: !hideCash });
+  };
+
   return (
-    <ScrollView style={styles.container} nestedScrollEnabled={true}>
+    <ScrollView
+      style={styles.container}
+      nestedScrollEnabled={true}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.greeting}>Chào {name}!</Text>
@@ -136,7 +170,7 @@ const Home = () => {
             style={styles.eyeIcon}
             name={hideCash ? "eye-off" : "eye"}
             size={20}
-            onPress={() => setHidecash(!hideCash)}
+            onPress={() => hanldeHideCash()}
           />
           <Text style={styles.balanceAmount}>
             {hideCash ? "*****" : formatCurrencyVND(sumCash.toString())}
@@ -175,17 +209,25 @@ const Home = () => {
               }}
             />
 
-            <View style={styles.detailAnalysis}>
-              <Text style={styles.amountIncome}>
-                {formatCurrencyVND(dataChart[1] + "")}
-              </Text>
-              <Text style={styles.amountSpend}>
-                {formatCurrencyVND(dataChart[0] + "")}
-              </Text>
-              <Text style={styles.sumAmount}>
-                {formatCurrencyVND(dataChart[1] - dataChart[0] + "")}
-              </Text>
-            </View>
+            {hideCash ? (
+              <View style={styles.detailAnalysis}>
+                <Text style={styles.amountIncome}>***** ₫</Text>
+                <Text style={styles.amountSpend}>***** ₫</Text>
+                <Text style={styles.sumAmount}>***** ₫</Text>
+              </View>
+            ) : (
+              <View style={styles.detailAnalysis}>
+                <Text style={styles.amountIncome}>
+                  {formatCurrencyVND(dataChart[1] + "")}
+                </Text>
+                <Text style={styles.amountSpend}>
+                  {formatCurrencyVND(dataChart[0] + "")}
+                </Text>
+                <Text style={styles.sumAmount}>
+                  {formatCurrencyVND(dataChart[1] - dataChart[0] + "")}
+                </Text>
+              </View>
+            )}
           </View>
         )}
       </View>

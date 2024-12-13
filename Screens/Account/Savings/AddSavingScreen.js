@@ -23,17 +23,10 @@ import AccountAdd from "../../ExpenseAdd/AccountAdd";
 import CustomToast from "../../../components/CustomToast";
 import { getSavingsData, saveSavingsData } from "../../../stores/savingStorage";
 import { updateAmountById } from "../../../stores/accountStorage";
-
-const accounts = [
-  {
-    name: "Tiền mặt",
-    type: "cash",
-  },
-  {
-    name: "Ngân hàng",
-    type: "bank",
-  },
-];
+import {
+  getTransactionData,
+  saveTransactionData,
+} from "../../../stores/transactionStorage";
 
 const AddSavingScreen = ({ onPressClose }) => {
   const [balanceView, setBalanceView] = useState("");
@@ -68,6 +61,8 @@ const AddSavingScreen = ({ onPressClose }) => {
   const parseCurrency = (value) => parseInt(value.replace(/\./g, "").trim());
 
   const getRandomId = () => `savings_${Math.floor(Math.random() * 9999999)}`;
+  const getRandomIdTransaction = () =>
+    `transaction_${Math.floor(Math.random() * 9999999)}`;
 
   // Function to handle account selection
   const handleAccountSelect = (account) => {
@@ -110,6 +105,17 @@ const AddSavingScreen = ({ onPressClose }) => {
     };
   }
 
+  const prepareTransactionData = () => ({
+    id: getRandomIdTransaction(),
+    amount: parseCurrency(balanceView),
+    date: `${getDAte(depositDate)} 00:00`,
+    accountId: selectedAccount.id,
+    categoryId: 39,
+    image: "",
+    type: "chi",
+    desc: "Gửi tiết kiệm",
+  });
+
   const handleCreateLoading = async (interestResult) => {
     const savingsPrepare = {
       id: getRandomId(),
@@ -125,6 +131,20 @@ const AddSavingScreen = ({ onPressClose }) => {
     };
 
     try {
+      const checkChangeAmount = await updateAmountById(
+        savingsPrepare.accountId,
+        savingsPrepare.amount,
+        "minus"
+      );
+
+      if (checkChangeAmount === false) {
+        Toast.show({
+          type: "error",
+          text1: "Số dư không đủ tiền để thêm!",
+        });
+        return false;
+      }
+
       const dataOld = await getSavingsData();
       const updatedData = await saveSavingsData([...dataOld, savingsPrepare]);
       await addHandleAsyncData({
@@ -133,12 +153,6 @@ const AddSavingScreen = ({ onPressClose }) => {
         id: savingsPrepare.id,
         data: savingsPrepare,
       });
-
-      await updateAmountById(
-        savingsPrepare.accountId,
-        savingsPrepare.amount,
-        "minus"
-      );
 
       await addHandleAsyncData({
         type: "update",
@@ -149,6 +163,19 @@ const AddSavingScreen = ({ onPressClose }) => {
           amount: "-" + savingsPrepare.amount,
         },
       });
+
+      const transactionPrepare = prepareTransactionData();
+
+      const dataTransaction = await getTransactionData();
+      await saveTransactionData([...dataTransaction, transactionPrepare]);
+
+      await addHandleAsyncData({
+        type: "create",
+        tbl: "transaction",
+        id: transactionPrepare.id,
+        data: transactionPrepare,
+      });
+
       return updatedData;
     } catch (error) {
       console.error("Error creating account:", error);
@@ -250,8 +277,6 @@ const AddSavingScreen = ({ onPressClose }) => {
         topOffset: 30,
       });
       setTimeout(onPressClose, 1500);
-    } else {
-      showErrorToast("Có lỗi khi tạo tài khoản. Vui lòng thử lại.");
     }
   };
 

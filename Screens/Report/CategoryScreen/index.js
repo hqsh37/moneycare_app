@@ -31,9 +31,9 @@ import { checkNetworkStatus } from "../../../services/asyncDataCloud";
 
 const CategoryScreen = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState({
-    id: 1,
-    name: "Chi tiền",
-    type: "chi",
+    id: 2,
+    name: "Thu tiền",
+    type: "thu",
   });
   const [selectedCategory, setSelectedCategory] = useState({
     id: 1,
@@ -204,20 +204,20 @@ const CategoryScreen = ({ onBack }) => {
         <TouchableOpacity
           style={[
             styles.tabItem,
-            activeTab.name === "Chi tiền" && styles.activeTab,
-          ]}
-          onPress={() => handleTabChange("Chi tiền")}
-        >
-          <Text style={styles.tabText}>Chi tiền</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabItem,
             activeTab.name === "Thu tiền" && styles.activeTab,
           ]}
           onPress={() => handleTabChange("Thu tiền")}
         >
           <Text style={styles.tabText}>Thu tiền</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabItem,
+            activeTab.name === "Chi tiền" && styles.activeTab,
+          ]}
+          onPress={() => handleTabChange("Chi tiền")}
+        >
+          <Text style={styles.tabText}>Chi tiền</Text>
         </TouchableOpacity>
       </View>
 

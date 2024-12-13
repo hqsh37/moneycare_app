@@ -26,6 +26,10 @@ import UpdateSavingScreen from "./UpdateSavingScreen";
 import { addHandleAsyncData } from "../../../services/asyncData";
 import DetailSavingScreen from "./DetailSavingScreen";
 import { updateAmountById } from "../../../stores/accountStorage";
+import {
+  getTransactionData,
+  saveTransactionData,
+} from "../../../stores/transactionStorage";
 
 const Savings = ({ textSearch = "" }) => {
   const [savings, setSavings] = useState([]);
@@ -186,6 +190,21 @@ const Savings = ({ textSearch = "" }) => {
       cat.id === savingsPrepare.id ? { ...cat, ...savingsPrepare } : cat
     );
 
+  const getRandomIdTransaction = () =>
+    `transaction_${Math.floor(Math.random() * 9999999)}`;
+
+  const getDAte = (dateObj) => {
+    const date = `${dateObj.getDate().toString().padStart(2, "0")}/${(
+      dateObj.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${dateObj.getFullYear()}`;
+
+    return date;
+  };
+
+  const parseCurrency = (value) => parseInt(value.replace(/\./g, "").trim());
+
   const handleclosing = async (savingsId) => {
     const savingsPrepare = {
       id: savingsId,
@@ -218,6 +237,27 @@ const Savings = ({ textSearch = "" }) => {
           id: selectedSaving.accountId,
           amount: selectedSaving.settlementAmount,
         },
+      });
+
+      const transactionPrepare = {
+        id: getRandomIdTransaction(),
+        amount: parseCurrency(selectedSaving.settlementAmount),
+        date: `${getDAte(new Date())} 00:00`,
+        accountId: selectedSaving.accountId,
+        categoryId: 37,
+        image: "",
+        type: "thu",
+        desc: "Tất toán sổ tiết kiệm",
+      };
+
+      const dataTransaction = await getTransactionData();
+      await saveTransactionData([...dataTransaction, transactionPrepare]);
+
+      await addHandleAsyncData({
+        type: "create",
+        tbl: "transaction",
+        id: transactionPrepare.id,
+        data: transactionPrepare,
       });
 
       return updatedData;

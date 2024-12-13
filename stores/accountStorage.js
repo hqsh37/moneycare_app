@@ -52,6 +52,9 @@ export const updateAmountById = async (id, amount, type = "plus") => {
       if (type === "plus") {
         data[index].amount = (currentAmount + numericAmount).toString();
       } else if (type === "minus") {
+        if (currentAmount - numericAmount <= 0) {
+          return false;
+        }
         data[index].amount = (currentAmount - numericAmount).toString();
       } else {
         console.error(`Invalid type: ${type}. Must be "plus" or "minus".`);

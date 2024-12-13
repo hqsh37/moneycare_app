@@ -76,7 +76,7 @@ const FinancialReport = ({ onBack }) => {
         <View style={styles.overviewRow}>
           <Text style={styles.overviewLabel}>Tài chính hiện tại</Text>
           <Text style={styles.overviewValue}>
-            {formatCurrency(sumCash + savingsAmount + "")} đ
+            {formatCurrency(sumCash + savingsAmount + "")} ₫
           </Text>
         </View>
       </View>
@@ -87,7 +87,7 @@ const FinancialReport = ({ onBack }) => {
           <Ionicons name="wallet-outline" size={24} color="#FFA500" />
           <Text style={styles.assetText}>Tiền mặt</Text>
           <Text style={styles.assetValue}>
-            {formatCurrency(sumCash + "")} đ
+            {formatCurrency(sumCash + "")} ₫
           </Text>
         </View>
 
@@ -95,7 +95,7 @@ const FinancialReport = ({ onBack }) => {
           <Ionicons name="logo-alipay" size={24} color="#FF69B4" />
           <Text style={styles.assetText}>Tài khoản tiết kiệm</Text>
           <Text style={styles.assetValue}>
-            {formatCurrency(savingsAmount + "")} đ
+            {formatCurrency(savingsAmount + "")} ₫
           </Text>
         </View>
       </View>

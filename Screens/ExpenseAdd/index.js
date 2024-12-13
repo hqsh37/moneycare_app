@@ -62,7 +62,8 @@ export default function ExpenseAdd() {
     start: 0,
     end: 0,
   });
-  const getRandomId = () => `account_${Math.floor(Math.random() * 9999999)}`;
+  const getRandomId = () =>
+    `transaction_${Math.floor(Math.random() * 9999999)}`;
   // Visible toggle modal
   const [modalVisibleCate, setModalVisibleCate] = useState(false);
   const [modalVisibleAcc, setModalVisibleAcc] = useState(false);
@@ -250,6 +251,19 @@ export default function ExpenseAdd() {
     const transactionPrepare = prepareTransactionData();
 
     try {
+      const checkChangeAmount = await updateAmountById(
+        transactionPrepare.accountId,
+        transactionPrepare.amount,
+        transactionPrepare.type == "chi" ? "minus" : "plus"
+      );
+
+      if (checkChangeAmount === false) {
+        Toast.show({
+          type: "error",
+          text1: "Số dư không đủ tiền để thêm!",
+        });
+        return false;
+      }
       const dataOld = await getTransactionData();
       await saveTransactionData([...dataOld, transactionPrepare]);
       await addHandleAsyncData({
@@ -270,15 +284,14 @@ export default function ExpenseAdd() {
               : transactionPrepare.amount,
         },
       });
-      await updateAmountById(
-        transactionPrepare.accountId,
-        transactionPrepare.amount,
-        transactionPrepare.type == "chi" ? "minus" : "plus"
-      );
       return true;
     } catch (error) {
       console.error("Error creating transaction:", error);
-      return false;
+      Toast.show({
+        type: "error",
+        text1: "Có lỗi xảy ra",
+        text2: "Vui lòng thử lại sau.",
+      });
     }
   };
 
@@ -368,12 +381,6 @@ export default function ExpenseAdd() {
         asyncData();
         resetForm();
       }, 1500);
-    } else {
-      Toast.show({
-        type: "error",
-        text1: "Có lỗi xảy ra",
-        text2: "Vui lòng thử lại sau.",
-      });
     }
   };
 
@@ -417,7 +424,7 @@ export default function ExpenseAdd() {
                 color={selectedOption === "Chi tiền" ? "red" : "green"}
                 keyboardType="numeric"
               />
-              <Text style={styles.moneyInputCurrency}>đ</Text>
+              <Text style={styles.moneyInputCurrency}>₫</Text>
             </View>
             <View style={styles.moneyInputUnderline} />
           </View>
