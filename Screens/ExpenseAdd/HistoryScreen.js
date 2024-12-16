@@ -25,6 +25,7 @@ function HistoryScreen({ onBack = () => {} }) {
   const loadData = async () => {
     await asyncData();
     const data = await convertDataTransaction();
+
     setViewDatas(data);
     setIsLoading(false);
   };

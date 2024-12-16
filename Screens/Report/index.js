@@ -16,6 +16,7 @@ import IncomeExpenseReport from "./IncomeExpenseReport";
 import IncomeAnalysis from "./IncomeAnalysis";
 import Sitemap from "./SiteMap";
 import SpendIncomePlan from "./SpendIncomePlan";
+import Suggestion from "./Suggestion";
 
 const Report = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -70,6 +71,13 @@ const Report = () => {
       icon: "currency-usd", // Thay đổi icon
       color: "#e91e63", // Thay đổi màu
       component: SpendIncomePlan,
+    },
+    {
+      id: "8",
+      title: "Gợi ý AI",
+      icon: "robot-outline", // Biểu tượng robot gợi nhớ đến AI
+      color: "#ff9800", // Màu cam sáng, nổi bật
+      component: Suggestion,
     },
   ];
 

@@ -214,6 +214,13 @@ export const categorySpend = [
         iconLib: "FontAwesome5",
         hanmuccha: "28",
       },
+      {
+        id: 39,
+        name: "Gửi tiết kiệm",
+        icon: "piggy-bank",
+        iconLib: "FontAwesome5",
+        hanmuccha: "28",
+      },
     ],
   },
 ];
